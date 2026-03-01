@@ -61,7 +61,7 @@ services:
     environment:
       BACKEND_URL: http://backend:3000
       HOST_ID: mini-pc-01
-      INTERVAL: 5000
+      INTERVAL: 30000
     depends_on:
       - backend
     networks:
@@ -75,7 +75,7 @@ services:
     environment:
       BACKEND_URL: http://backend:3000
       HOST_ID: mini-pc-02
-      INTERVAL: 5000
+      INTERVAL: 30000
     depends_on:
       - backend
     networks:
@@ -89,7 +89,7 @@ services:
     environment:
       BACKEND_URL: http://backend:3000
       HOST_ID: mini-pc-03
-      INTERVAL: 5000
+      INTERVAL: 30000
     depends_on:
       - backend
     networks:
@@ -103,7 +103,7 @@ services:
     environment:
       BACKEND_URL: http://backend:3000
       HOST_ID: mini-pc-04
-      INTERVAL: 5000
+      INTERVAL: 30000
     depends_on:
       - backend
     networks:
@@ -117,7 +117,7 @@ services:
     environment:
       BACKEND_URL: http://backend:3000
       HOST_ID: mini-pc-05
-      INTERVAL: 5000
+      INTERVAL: 30000
     depends_on:
       - backend
     networks:

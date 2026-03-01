@@ -2,7 +2,7 @@ const axios = require('axios');
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://backend:3000';
 const HOST_ID = process.env.HOST_ID || 'mini-pc-01';
-const INTERVAL = parseInt(process.env.INTERVAL) || 5000; // 5 segundos
+const INTERVAL = parseInt(process.env.INTERVAL) || 30000; // 30 segundos para visualización en tiempo real
 
 // Configuración de cada mini PC (características específicas)
 const PC_PROFILES = {

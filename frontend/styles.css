@@ -488,3 +488,27 @@ pre {
     border-radius: 8px;
     margin-top: 10px;
 }
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Form inputs for database page */
+input[type="number"],
+input[type="text"],
+select {
+    font-family: inherit;
+}
+
+button[type="submit"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(56, 178, 172, 0.4);
+}

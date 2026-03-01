@@ -203,6 +203,77 @@ app.get('/api/stats', async (req, res) => {
 });
 
 /**
+ * POST /api/metrics/manual - Insertar métricas manualmente desde la interfaz
+ */
+app.post('/api/metrics/manual', async (req, res) => {
+    const {
+        host_id,
+        cpu_usage,
+        ram_used_gb,
+        temperature
+    } = req.body;
+
+    if (!host_id) {
+        return res.status(400).json({ error: 'host_id es requerido' });
+    }
+
+    try {
+        // Obtener información del nodo
+        const nodeResult = await pool.query(
+            'SELECT * FROM cluster_nodes WHERE host_id = $1',
+            [host_id]
+        );
+
+        if (nodeResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Nodo no encontrado' });
+        }
+
+        const node = nodeResult.rows[0];
+        
+        // Calcular valores derivados
+        const ram_usage_percent = (ram_used_gb / node.ram_total_gb) * 100;
+        const disk_used_gb = node.disk_total_gb * 0.35; // Valor por defecto
+        const disk_usage_percent = 35; // Valor por defecto
+        const network_in_mbps = Math.random() * 50;
+        const network_out_mbps = Math.random() * 20;
+        const uptime_hours = Math.floor(Math.random() * 720) + 1;
+
+        const query = `
+            INSERT INTO metrics (
+                host_id, cpu_usage, ram_used_gb, ram_usage_percent,
+                temperature, disk_used_gb, disk_usage_percent,
+                network_in_mbps, network_out_mbps, uptime_hours
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            RETURNING *;
+        `;
+        
+        const values = [
+            host_id,
+            cpu_usage,
+            ram_used_gb,
+            ram_usage_percent,
+            temperature,
+            disk_used_gb,
+            disk_usage_percent,
+            network_in_mbps,
+            network_out_mbps,
+            uptime_hours
+        ];
+
+        const result = await pool.query(query, values);
+        console.log(`📊 Métricas manuales guardadas: ${host_id}`);
+        res.status(201).json({
+            success: true,
+            message: 'Métrica insertada correctamente',
+            data: result.rows[0]
+        });
+    } catch (error) {
+        console.error('Error guardando métricas manuales:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
  * POST /api/query - Ejecutar consulta SQL personalizada (solo SELECT)
  */
 app.post('/api/query', async (req, res) => {

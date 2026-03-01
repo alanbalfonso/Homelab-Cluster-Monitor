@@ -9,8 +9,10 @@ Sistema completo de monitoreo para cluster de mini PCs con simulación de datos,
 - **API REST** completa con Express.js
 - **Frontend interactivo** con actualización en tiempo real
 - **Docker Compose** para orquestación completa
-- **Métricas completas**: CPU, RAM, Disco, Red, Temperatura, Uptime
-
+- **Métricas completas**: CPU, RAM, Disco, Red, Temperatura, Uptime- ✅ **Visualización de base de datos** desde la interfaz web
+- ✅ **Inserción manual de datos** para demostración y pruebas
+- ✅ **Modo tiempo real** para observar el llenado de la base de datos
+- ✅ **Consultas SQL personalizadas** desde la interfaz
 ## Arquitectura
 
 ```
@@ -34,7 +36,7 @@ Sistema completo de monitoreo para cluster de mini PCs con simulación de datos,
          │
 ┌────────┴────────┐
 │  Simuladores    │  5 contenedores
-│  (Mini PCs)     │  Generan métricas cada 5s
+│  (Mini PCs)     │  Generan métricas cada 30s
 └─────────────────┘
 ```
 
@@ -48,11 +50,41 @@ docker-compose up --build
 
 ### 2. Acceder al sistema
 
-- **Frontend**: http://localhost:8080
+- **Frontend Principal**: http://localhost:8080
+- **Vista de Base de Datos**: http://localhost:8080/database.html
 - **API Backend**: http://localhost:3000
 - **PostgreSQL**: localhost:5432
 
-### 3. Ver logs
+### 3. Funcionalidades de la Interfaz de Base de Datos
+
+La interfaz de base de datos (`database.html`) ofrece las siguientes funcionalidades:
+
+#### 📊 Visualización de Datos
+- **Ver Nodos**: Muestra todos los nodos del cluster con sus especificaciones
+- **Últimas Métricas**: Métricas más recientes de cada nodo
+- **Todas las Métricas**: Últimas 100 métricas agregadas
+- **Resumen 24h**: Estadísticas agregadas de las últimas 24 horas
+
+#### ⏱️ Modo Tiempo Real
+- Activa el botón "🔴 Tiempo Real" para ver cómo se llena la base de datos
+- Las métricas se actualizan automáticamente cada 5 segundos
+- Muestra el contador total de métricas con resaltado al detectar nuevas entradas
+- Las filas nuevas aparecen con animación y color destacado
+
+#### ➕ Inserción Manual de Datos
+- Formulario para insertar métricas personalizadas
+- Selecciona el nodo (mini-pc-01 a mini-pc-05)
+- Ingresa valores de CPU (%), RAM (GB) y Temperatura (°C)
+- Confirma la inserción con feedback visual inmediato
+- Ideal para demostración y pruebas
+
+#### 🔍 Consultas SQL Personalizadas
+- Ejecuta consultas SELECT directamente desde la interfaz
+- Visualización de resultados en formato tabla
+- Validación de seguridad (solo SELECT permitido)
+- Ejemplos incluidos en la interfaz
+
+### 4. Ver logs
 
 ```bash
 # Todos los servicios
@@ -79,7 +111,8 @@ docker-compose logs -f backend
 
 ### Métricas
 
-- `POST /api/metrics` - Enviar métricas de un nodo
+- `POST /api/metrics` - Enviar métricas de un nodo (usado por simuladores)
+- `POST /api/metrics/manual` - Insertar métricas manualmente desde la interfaz
 - `GET /api/metrics/latest` - Últimas métricas de todos los nodos
 - `GET /api/metrics/history/:host_id` - Historial de un nodo (limit=100)
 - `GET /api/metrics/summary` - Resumen de 24h
@@ -91,6 +124,13 @@ docker-compose logs -f backend
 ### Estadísticas
 
 - `GET /api/stats` - Estadísticas generales del cluster
+
+### Consultas
+
+- `POST /api/query` - Ejecutar consulta SQL personalizada (solo SELECT)
+
+### Sistema
+
 - `GET /health` - Health check del sistema
 
 ### Ejemplo de uso
