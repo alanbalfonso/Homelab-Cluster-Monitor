@@ -4,129 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HCM - Base de Datos</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
-            color: #333;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        h1 {
-            color: white;
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 36px;
-        }
-        .controls {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        button {
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: transform 0.2s;
-        }
-        button:hover {
-            transform: translateY(-2px);
-        }
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        .stat-label {
-            font-size: 14px;
-            color: #718096;
-            margin-bottom: 8px;
-        }
-        .stat-value {
-            font-size: 32px;
-            font-weight: bold;
-            color: #667eea;
-        }
-        .section {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-        }
-        h2 {
-            color: #2d3748;
-            margin-bottom: 16px;
-            font-size: 24px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        th {
-            background: #f7fafc;
-            padding: 12px;
-            text-align: left;
-            font-weight: 600;
-            color: #2d3748;
-            border-bottom: 2px solid #e2e8f0;
-        }
-        td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #e2e8f0;
-            font-size: 14px;
-        }
-        tr:hover {
-            background: #f7fafc;
-        }
-        .query-result {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #718096;
-        }
-        pre {
-            background: #2d3748;
-            color: #68d391;
-            padding: 15px;
-            border-radius: 8px;
-            overflow-x: auto;
-            font-size: 12px;
-            margin-top: 10px;
-        }
-        .error {
-            background: #fed7d7;
-            color: #742a2a;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
@@ -148,12 +26,12 @@
         </div>
 
         <div class="controls">
-            <button onclick="loadNodes()">📋 Ver Nodos</button>
-            <button onclick="loadLatestMetrics()">📊 Últimas Métricas</button>
-            <button onclick="loadAllMetrics()">📈 Todas las Métricas (últimas 100)</button>
-            <button onclick="loadSummary()">📉 Resumen 24h</button>
-            <button onclick="executeCustomQuery()">⚙️ Consulta Personalizada</button>
-            <button onclick="refreshStats()">🔄 Actualizar Estadísticas</button>
+            <button onclick="loadNodes()">Ver Nodos</button>
+            <button onclick="loadLatestMetrics()">Últimas Métricas</button>
+            <button onclick="loadAllMetrics()">Todas las Métricas (últimas 100)</button>
+            <button onclick="loadSummary()">Resumen 24h</button>
+            <button onclick="executeCustomQuery()">Consulta Personalizada</button>
+            <button onclick="refreshStats()">Actualizar Estadísticas</button>
         </div>
 
         <div class="section">
@@ -411,7 +289,7 @@ WHERE timestamp > NOW() - INTERVAL '24 hours';</pre>
             
             if (!query) return;
 
-            document.getElementById('sectionTitle').textContent = '⚙️ Consulta Personalizada';
+            document.getElementById('sectionTitle').textContent = 'Consulta Personalizada';
             document.getElementById('results').innerHTML = '<div class="loading">Ejecutando consulta...</div>';
             
             try {
@@ -435,7 +313,7 @@ WHERE timestamp > NOW() - INTERVAL '24 hours';</pre>
                     
                     const html = `
                         <div style="margin-bottom: 10px; padding: 10px; background: #e6fffa; border-left: 4px solid #38b2ac; border-radius: 4px;">
-                            <strong>✅ Consulta ejecutada exitosamente</strong><br>
+                            <strong>Consulta ejecutada exitosamente</strong><br>
                             <small>Filas retornadas: ${data.rowCount}</small>
                         </div>
                         <pre style="background: #2d3748; color: #68d391; padding: 10px; border-radius: 4px; font-size: 12px;">${query}</pre>
@@ -469,7 +347,7 @@ WHERE timestamp > NOW() - INTERVAL '24 hours';</pre>
                 } else if (data.success && data.data.length === 0) {
                     document.getElementById('results').innerHTML = `
                         <div style="padding: 40px; text-align: center; color: #718096;">
-                            <h3>✅ Consulta ejecutada exitosamente</h3>
+                            <h3>Consulta ejecutada exitosamente</h3>
                             <p>No se encontraron resultados</p>
                             <pre style="background: #2d3748; color: #68d391; padding: 10px; border-radius: 4px; font-size: 12px; text-align: left;">${query}</pre>
                         </div>
@@ -478,7 +356,7 @@ WHERE timestamp > NOW() - INTERVAL '24 hours';</pre>
             } catch (error) {
                 document.getElementById('results').innerHTML = 
                     `<div class="error">
-                        <strong>❌ Error ejecutando consulta:</strong><br>
+                        <strong>Error ejecutando consulta:</strong><br>
                         ${error.message}
                         <br><br>
                         <small>Recuerda: Solo se permiten consultas SELECT</small>

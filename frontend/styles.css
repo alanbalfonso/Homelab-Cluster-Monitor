@@ -401,3 +401,90 @@ body {
         margin-left: 0;
     }
 }
+
+/* ========================================
+   Database Page Styles
+   ======================================== */
+
+/* Database page specific heading */
+.container > h1 {
+    color: white;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 36px;
+}
+
+/* Database stats grid */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+/* Section container for database content */
+.section {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+}
+
+.section h2 {
+    color: #2d3748;
+    margin-bottom: 16px;
+    font-size: 24px;
+}
+
+/* Table styles for database queries */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th {
+    background: #f7fafc;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #2d3748;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 14px;
+}
+
+tr:hover {
+    background: #f7fafc;
+}
+
+/* Query results container */
+.query-result {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Code blocks for SQL queries */
+pre {
+    background: #2d3748;
+    color: #68d391;
+    padding: 15px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 12px;
+    margin-top: 10px;
+}
+
+/* Error messages */
+.error {
+    background: #fed7d7;
+    color: #742a2a;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
