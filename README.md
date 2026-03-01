@@ -1,15 +1,15 @@
-# 🖥️ Homelab Cluster Monitor (HCM)
+# Homelab Cluster Monitor (HCM)
 
 Sistema completo de monitoreo para cluster de mini PCs con simulación de datos, base de datos SQL y frontend interactivo.
 
-## 📋 Características
+## Características
 
-- ✅ **Simulación realista** de 5 mini PCs con patrones de carga diferentes
-- ✅ **Base de datos PostgreSQL** con esquema optimizado para métricas
-- ✅ **API REST** completa con Express.js
-- ✅ **Frontend interactivo** con actualización en tiempo real
-- ✅ **Docker Compose** para orquestación completa
-- ✅ **Métricas completas**: CPU, RAM, Disco, Red, Temperatura, Uptime
+- **Simulación realista** de 5 mini PCs con patrones de carga diferentes
+- **Base de datos PostgreSQL** con esquema optimizado para métricas
+- **API REST** completa con Express.js
+- **Frontend interactivo** con actualización en tiempo real
+- **Docker Compose** para orquestación completa
+- **Métricas completas**: CPU, RAM, Disco, Red, Temperatura, Uptime
 
 ## 🏗️ Arquitectura
 
@@ -28,7 +28,7 @@ Sistema completo de monitoreo para cluster de mini PCs con simulación de datos,
          ↓
 ┌─────────────────┐
 │   PostgreSQL    │  Puerto 5432
-│   (Base de Datos)│
+│ (Base de Datos) │
 └─────────────────┘
          ↑
          │
@@ -38,7 +38,7 @@ Sistema completo de monitoreo para cluster de mini PCs con simulación de datos,
 └─────────────────┘
 ```
 
-## 🚀 Inicio Rápido
+## Inicio Rápido
 
 ### 1. Construir y levantar todos los servicios
 
@@ -65,7 +65,7 @@ docker-compose logs -f mini-pc-01 mini-pc-02 mini-pc-03
 docker-compose logs -f backend
 ```
 
-## 📊 Mini PCs Simulados
+## Mini PCs Simulados
 
 | Host ID | Nombre | Specs | Patrón de Carga | Ubicación |
 |---------|--------|-------|-----------------|-----------|
@@ -75,7 +75,7 @@ docker-compose logs -f backend
 | `mini-pc-04` | HomeServer-Delta | 4 cores, 8GB RAM, 256GB | Bursts ocasionales | Escritorio - Zona B |
 | `mini-pc-05` | HomeServer-Epsilon | 4 cores, 8GB RAM, 128GB | Muy baja (IoT) | Estantería - IoT Hub |
 
-## 🔌 Endpoints de la API
+## Endpoints de la API
 
 ### Métricas
 
@@ -119,7 +119,7 @@ curl -X POST http://localhost:3000/api/metrics \
   }'
 ```
 
-## 💾 Base de Datos
+## Base de Datos
 
 ### Tablas
 
@@ -147,7 +147,7 @@ SELECT * FROM metrics_24h_avg;
 SELECT COUNT(*) FROM metrics;
 ```
 
-## 🎨 Frontend
+## Frontend
 
 El frontend ofrece:
 
@@ -164,7 +164,7 @@ El frontend ofrece:
 - 🟡 Amarillo: Valores medios (50-80%)
 - 🔴 Rojo: Valores altos (> 80%)
 
-## 🛠️ Comandos Útiles
+## Comandos Útiles
 
 ```bash
 # Detener todos los servicios
@@ -186,7 +186,7 @@ docker exec -it hcm-backend sh
 docker-compose restart mini-pc-01
 ```
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 HCM/
@@ -207,7 +207,7 @@ HCM/
     └── index.js            # Simulador de mini PCs
 ```
 
-## 🔧 Configuración
+## Configuración
 
 ### Variables de entorno del simulador
 
@@ -224,7 +224,7 @@ HCM/
 - `DB_PASSWORD`: Contraseña de PostgreSQL (default: admin123)
 - `PORT`: Puerto del backend (default: 3000)
 
-## 🚨 Troubleshooting
+## Troubleshooting
 
 ### El frontend no muestra datos
 
@@ -243,7 +243,7 @@ HCM/
 2. Revisa logs: `docker-compose logs mini-pc-01`
 3. Verifica red: `docker network inspect hcm_hcm-network`
 
-## 📈 Próximas Mejoras
+## Próximas Mejoras
 
 - [ ] Gráficas con Chart.js para visualización histórica
 - [ ] Alertas por email/Slack cuando métricas excedan umbrales
@@ -252,14 +252,8 @@ HCM/
 - [ ] Panel de administración para agregar/eliminar nodos
 - [ ] WebSockets para actualizaciones en tiempo real sin polling
 
-## 📝 Licencia
+## Licencia
 
 MIT License - Libre para uso personal y comercial
 
-## 👨‍💻 Autor
-
-Sistema desarrollado para monitoreo de homelab cluster
-
 ---
-
-**¡Disfruta monitoreando tu cluster!** 🎉
