@@ -11,7 +11,7 @@ Sistema completo de monitoreo para cluster de mini PCs con simulación de datos,
 - **Docker Compose** para orquestación completa
 - **Métricas completas**: CPU, RAM, Disco, Red, Temperatura, Uptime
 
-## 🏗️ Arquitectura
+## Arquitectura
 
 ```
 ┌─────────────────┐
