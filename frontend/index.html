@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homelab Cluster Monitor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">🖥️</div>
+                <div>
+                    <h1>Homelab Cluster Monitor</h1>
+                    <p class="subtitle">Sistema de Monitoreo en Tiempo Real</p>
+                </div>
+            </div>
+            <div class="header-stats">
+                <div class="stat-card">
+                    <span class="stat-label">Nodos Activos</span>
+                    <span class="stat-value" id="activeNodes">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Métricas Totales</span>
+                    <span class="stat-value" id="totalMetrics">0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">CPU Promedio</span>
+                    <span class="stat-value" id="avgCpu">0%</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Temp Promedio</span>
+                    <span class="stat-value" id="avgTemp">0°C</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button class="btn btn-primary" onclick="refreshData()">
+                <span>🔄</span> Actualizar
+            </button>
+            <button class="btn btn-secondary" onclick="toggleAutoRefresh()">
+                <span id="autoRefreshIcon">▶️</span> Auto-refresh: <span id="autoRefreshStatus">OFF</span>
+            </button>
+            <div class="last-update">
+                Última actualización: <span id="lastUpdate">Nunca</span>
+            </div>
+        </div>
+
+        <!-- Nodes Grid -->
+        <div class="nodes-grid" id="nodesGrid">
+            <!-- Los nodos se cargarán dinámicamente aquí -->
+        </div>
+
+        <!-- Details Modal -->
+        <div class="modal" id="detailsModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modalTitle">Detalles del Nodo</h2>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Contenido dinámico -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <h2>📊 Resumen del Cluster (Últimas 24h)</h2>
+            <div class="summary-grid" id="summaryGrid">
+                <!-- Resumen de 24h se cargará aquí -->
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

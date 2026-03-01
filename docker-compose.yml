@@ -1,0 +1,132 @@
+version: '3.8'
+
+services:
+  # Base de datos PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: hcm-postgres
+    environment:
+      POSTGRES_DB: homelab_monitor
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - hcm-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d homelab_monitor"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build: ./backend
+    container_name: hcm-backend
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: homelab_monitor
+      DB_USER: admin
+      DB_PASSWORD: admin123
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - hcm-network
+    restart: unless-stopped
+
+  # Frontend
+  frontend:
+    build: ./frontend
+    container_name: hcm-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - hcm-network
+    restart: unless-stopped
+
+  # Simulador Mini PC 01 - HomeServer Alpha (Alta carga)
+  mini-pc-01:
+    build: ./simulator
+    container_name: mini-pc-01
+    environment:
+      BACKEND_URL: http://backend:3000
+      HOST_ID: mini-pc-01
+      INTERVAL: 5000
+    depends_on:
+      - backend
+    networks:
+      - hcm-network
+    restart: unless-stopped
+
+  # Simulador Mini PC 02 - HomeServer Beta (Carga media)
+  mini-pc-02:
+    build: ./simulator
+    container_name: mini-pc-02
+    environment:
+      BACKEND_URL: http://backend:3000
+      HOST_ID: mini-pc-02
+      INTERVAL: 5000
+    depends_on:
+      - backend
+    networks:
+      - hcm-network
+    restart: unless-stopped
+
+  # Simulador Mini PC 03 - HomeServer Gamma (Carga baja)
+  mini-pc-03:
+    build: ./simulator
+    container_name: mini-pc-03
+    environment:
+      BACKEND_URL: http://backend:3000
+      HOST_ID: mini-pc-03
+      INTERVAL: 5000
+    depends_on:
+      - backend
+    networks:
+      - hcm-network
+    restart: unless-stopped
+
+  # Simulador Mini PC 04 - HomeServer Delta (Bursts)
+  mini-pc-04:
+    build: ./simulator
+    container_name: mini-pc-04
+    environment:
+      BACKEND_URL: http://backend:3000
+      HOST_ID: mini-pc-04
+      INTERVAL: 5000
+    depends_on:
+      - backend
+    networks:
+      - hcm-network
+    restart: unless-stopped
+
+  # Simulador Mini PC 05 - HomeServer Epsilon (IoT Hub - carga muy baja)
+  mini-pc-05:
+    build: ./simulator
+    container_name: mini-pc-05
+    environment:
+      BACKEND_URL: http://backend:3000
+      HOST_ID: mini-pc-05
+      INTERVAL: 5000
+    depends_on:
+      - backend
+    networks:
+      - hcm-network
+    restart: unless-stopped
+
+networks:
+  hcm-network:
+    driver: bridge
+volumes:
+  postgres_data:
+    driver: local

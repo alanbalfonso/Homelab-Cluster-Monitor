@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HCM - Base de Datos</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 36px;
+        }
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-label {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 8px;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #2d3748;
+            margin-bottom: 16px;
+            font-size: 24px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th {
+            background: #f7fafc;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #2d3748;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+        tr:hover {
+            background: #f7fafc;
+        }
+        .query-result {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+        pre {
+            background: #2d3748;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .error {
+            background: #fed7d7;
+            color: #742a2a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Base de Datos - HCM</h1>
+        
+        <div class="stats" id="stats">
+            <div class="stat-card">
+                <div class="stat-label">Total Métricas</div>
+                <div class="stat-value" id="totalMetrics">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Nodos Activos</div>
+                <div class="stat-value" id="totalNodes">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Última Actualización</div>
+                <div class="stat-value" id="lastUpdate" style="font-size: 16px;">-</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button onclick="loadNodes()">📋 Ver Nodos</button>
+            <button onclick="loadLatestMetrics()">📊 Últimas Métricas</button>
+            <button onclick="loadAllMetrics()">📈 Todas las Métricas (últimas 100)</button>
+            <button onclick="loadSummary()">📉 Resumen 24h</button>
+            <button onclick="executeCustomQuery()">⚙️ Consulta Personalizada</button>
+            <button onclick="refreshStats()">🔄 Actualizar Estadísticas</button>
+        </div>
+
+        <div class="section">
+            <h2 id="sectionTitle">Selecciona una opción arriba</h2>
+            <div id="results" class="query-result">
+                <div class="loading">Selecciona un botón para ver los datos de la base de datos</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>💡 Consultas SQL Útiles</h2>
+            <pre>-- Ver todos los nodos
+SELECT * FROM cluster_nodes;
+
+-- Contar métricas totales
+SELECT COUNT(*) FROM metrics;
+
+-- Últimas 20 métricas
+SELECT * FROM metrics ORDER BY timestamp DESC LIMIT 20;
+
+-- Promedio de CPU por nodo
+SELECT host_id, AVG(cpu_usage) as avg_cpu 
+FROM metrics 
+GROUP BY host_id;
+
+-- Métricas de las últimas 24 horas
+SELECT * FROM metrics 
+WHERE timestamp > NOW() - INTERVAL '24 hours';</pre>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+
+        async function refreshStats() {
+            try {
+                const response = await fetch(`${API_URL}/stats`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('totalMetrics').textContent = 
+                        data.stats.total_metrics_recorded.toLocaleString();
+                    document.getElementById('totalNodes').textContent = 
+                        data.stats.active_nodes;
+                    document.getElementById('lastUpdate').textContent = 
+                        new Date().toLocaleTimeString();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function loadNodes() {
+            document.getElementById('sectionTitle').textContent = 'Nodos del Cluster';
+            document.getElementById('results').innerHTML = '<div class="loading">Cargando...</div>';
+            
+            try {
+                const response = await fetch(`${API_URL}/nodes`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const html = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Host ID</th>
+                                    <th>Hostname</th>
+                                    <th>Ubicación</th>
+                                    <th>CPU Cores</th>
+                                    <th>RAM (GB)</th>
+                                    <th>Disco (GB)</th>
+                                    <th>OS</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.data.map(node => `
+                                    <tr>
+                                        <td><strong>${node.host_id}</strong></td>
+                                        <td>${node.hostname}</td>
+                                        <td>${node.location}</td>
+                                        <td>${node.cpu_cores}</td>
+                                        <td>${node.ram_total_gb}</td>
+                                        <td>${node.disk_total_gb}</td>
+                                        <td>${node.os}</td>
+                                        <td>${node.status}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                    document.getElementById('results').innerHTML = html;
+                }
+            } catch (error) {
+                document.getElementById('results').innerHTML = 
+                    `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function loadLatestMetrics() {
+            document.getElementById('sectionTitle').textContent = 'Últimas Métricas por Nodo';
+            document.getElementById('results').innerHTML = '<div class="loading">Cargando...</div>';
+            
+            try {
+                const response = await fetch(`${API_URL}/metrics/latest`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const html = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Host ID</th>
+                                    <th>Hostname</th>
+                                    <th>CPU %</th>
+                                    <th>RAM GB</th>
+                                    <th>RAM %</th>
+                                    <th>Temp °C</th>
+                                    <th>Disco %</th>
+                                    <th>Red In (Mbps)</th>
+                                    <th>Red Out (Mbps)</th>
+                                    <th>Uptime (h)</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.data.map(m => `
+                                    <tr>
+                                        <td><strong>${m.host_id}</strong></td>
+                                        <td>${m.hostname}</td>
+                                        <td>${m.cpu_usage?.toFixed(2) || '-'}</td>
+                                        <td>${m.ram_used_gb?.toFixed(2) || '-'}</td>
+                                        <td>${m.ram_usage_percent?.toFixed(2) || '-'}</td>
+                                        <td>${m.temperature?.toFixed(2) || '-'}</td>
+                                        <td>${m.disk_usage_percent?.toFixed(2) || '-'}</td>
+                                        <td>${m.network_in_mbps?.toFixed(2) || '-'}</td>
+                                        <td>${m.network_out_mbps?.toFixed(2) || '-'}</td>
+                                        <td>${m.uptime_hours || '-'}</td>
+                                        <td>${new Date(m.timestamp).toLocaleString()}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                    document.getElementById('results').innerHTML = html;
+                }
+            } catch (error) {
+                document.getElementById('results').innerHTML = 
+                    `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function loadAllMetrics() {
+            document.getElementById('sectionTitle').textContent = 'Todas las Métricas (últimas 100)';
+            document.getElementById('results').innerHTML = '<div class="loading">Cargando...</div>';
+            
+            try {
+                // Obtener métricas de todos los nodos
+                const nodes = ['mini-pc-01', 'mini-pc-02', 'mini-pc-03', 'mini-pc-04', 'mini-pc-05'];
+                const promises = nodes.map(id => 
+                    fetch(`${API_URL}/metrics/history/${id}?limit=20`).then(r => r.json())
+                );
+                
+                const results = await Promise.all(promises);
+                const allMetrics = results.flatMap(r => r.data);
+                allMetrics.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                
+                const html = `
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Host</th>
+                                <th>CPU %</th>
+                                <th>RAM GB</th>
+                                <th>Temp °C</th>
+                                <th>Disco %</th>
+                                <th>Red In</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${allMetrics.slice(0, 100).map(m => `
+                                <tr>
+                                    <td>${m.id}</td>
+                                    <td><strong>${m.host_id}</strong></td>
+                                    <td>${m.cpu_usage?.toFixed(2)}</td>
+                                    <td>${m.ram_used_gb?.toFixed(2)}</td>
+                                    <td>${m.temperature?.toFixed(2)}</td>
+                                    <td>${m.disk_usage_percent?.toFixed(2)}</td>
+                                    <td>${m.network_in_mbps?.toFixed(2)}</td>
+                                    <td>${new Date(m.timestamp).toLocaleString()}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                document.getElementById('results').innerHTML = html;
+            } catch (error) {
+                document.getElementById('results').innerHTML = 
+                    `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function loadSummary() {
+            document.getElementById('sectionTitle').textContent = 'Resumen de 24 Horas';
+            document.getElementById('results').innerHTML = '<div class="loading">Cargando...</div>';
+            
+            try {
+                const response = await fetch(`${API_URL}/metrics/summary`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const html = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Host ID</th>
+                                    <th>Hostname</th>
+                                    <th>CPU Promedio</th>
+                                    <th>RAM Promedio</th>
+                                    <th>Temp Promedio</th>
+                                    <th>Temp Máxima</th>
+                                    <th>Temp Mínima</th>
+                                    <th>Muestras</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.data.map(s => `
+                                    <tr>
+                                        <td><strong>${s.host_id}</strong></td>
+                                        <td>${s.hostname}</td>
+                                        <td>${parseFloat(s.avg_cpu || 0).toFixed(2)}%</td>
+                                        <td>${parseFloat(s.avg_ram || 0).toFixed(2)}%</td>
+                                        <td>${parseFloat(s.avg_temp || 0).toFixed(2)}°C</td>
+                                        <td>${parseFloat(s.max_temp || 0).toFixed(2)}°C</td>
+                                        <td>${parseFloat(s.min_temp || 0).toFixed(2)}°C</td>
+                                        <td>${s.samples}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                    document.getElementById('results').innerHTML = html;
+                }
+            } catch (error) {
+                document.getElementById('results').innerHTML = 
+                    `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function executeCustomQuery() {
+            const query = prompt('Ingresa una consulta SQL (solo SELECT):\n\nEjemplos:\n- SELECT * FROM metrics LIMIT 10;\n- SELECT host_id, AVG(cpu_usage) FROM metrics GROUP BY host_id;\n- SELECT * FROM cluster_nodes;', 
+                'SELECT * FROM metrics ORDER BY timestamp DESC LIMIT 10;');
+            
+            if (!query) return;
+
+            document.getElementById('sectionTitle').textContent = '⚙️ Consulta Personalizada';
+            document.getElementById('results').innerHTML = '<div class="loading">Ejecutando consulta...</div>';
+            
+            try {
+                const response = await fetch(`${API_URL}/query`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query })
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || data.error);
+                }
+
+                if (data.success && data.data.length > 0) {
+                    // Obtener nombres de columnas
+                    const columns = Object.keys(data.data[0]);
+                    
+                    const html = `
+                        <div style="margin-bottom: 10px; padding: 10px; background: #e6fffa; border-left: 4px solid #38b2ac; border-radius: 4px;">
+                            <strong>✅ Consulta ejecutada exitosamente</strong><br>
+                            <small>Filas retornadas: ${data.rowCount}</small>
+                        </div>
+                        <pre style="background: #2d3748; color: #68d391; padding: 10px; border-radius: 4px; font-size: 12px;">${query}</pre>
+                        <table>
+                            <thead>
+                                <tr>
+                                    ${columns.map(col => `<th>${col}</th>`).join('')}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.data.map(row => `
+                                    <tr>
+                                        ${columns.map(col => {
+                                            let value = row[col];
+                                            // Formatear valores especiales
+                                            if (value === null) value = '<i style="color: #a0aec0;">NULL</i>';
+                                            else if (typeof value === 'number') value = value.toFixed ? value.toFixed(2) : value;
+                                            else if (value instanceof Date || (typeof value === 'string' && value.match(/^\d{4}-\d{2}-\d{2}/))) {
+                                                try {
+                                                    value = new Date(value).toLocaleString();
+                                                } catch (e) {}
+                                            }
+                                            return `<td>${value}</td>`;
+                                        }).join('')}
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                    document.getElementById('results').innerHTML = html;
+                } else if (data.success && data.data.length === 0) {
+                    document.getElementById('results').innerHTML = `
+                        <div style="padding: 40px; text-align: center; color: #718096;">
+                            <h3>✅ Consulta ejecutada exitosamente</h3>
+                            <p>No se encontraron resultados</p>
+                            <pre style="background: #2d3748; color: #68d391; padding: 10px; border-radius: 4px; font-size: 12px; text-align: left;">${query}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('results').innerHTML = 
+                    `<div class="error">
+                        <strong>❌ Error ejecutando consulta:</strong><br>
+                        ${error.message}
+                        <br><br>
+                        <small>Recuerda: Solo se permiten consultas SELECT</small>
+                    </div>`;
+            }
+        }
+
+        // Cargar estadísticas al inicio
+        refreshStats();
+        setInterval(refreshStats, 10000); // Actualizar cada 10 segundos
+    </script>
+</body>
+</html>
