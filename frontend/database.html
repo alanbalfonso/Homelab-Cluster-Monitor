@@ -108,6 +108,13 @@ WHERE timestamp > NOW() - INTERVAL '24 hours';</pre>
         let realtimeInterval = null;
         let lastMetricCount = 0;
 
+        // Función auxiliar para formatear números de forma segura
+        function formatNumber(value, decimals = 2) {
+            if (value === null || value === undefined || value === '') return '-';
+            const num = parseFloat(value);
+            return isNaN(num) ? '-' : num.toFixed(decimals);
+        }
+
         async function refreshStats() {
             try {
                 const response = await fetch(`${API_URL}/stats`);
@@ -204,13 +211,13 @@ WHERE timestamp > NOW() - INTERVAL '24 hours';</pre>
                                     <tr>
                                         <td><strong>${m.host_id}</strong></td>
                                         <td>${m.hostname}</td>
-                                        <td>${m.cpu_usage?.toFixed(2) || '-'}</td>
-                                        <td>${m.ram_used_gb?.toFixed(2) || '-'}</td>
-                                        <td>${m.ram_usage_percent?.toFixed(2) || '-'}</td>
-                                        <td>${m.temperature?.toFixed(2) || '-'}</td>
-                                        <td>${m.disk_usage_percent?.toFixed(2) || '-'}</td>
-                                        <td>${m.network_in_mbps?.toFixed(2) || '-'}</td>
-                                        <td>${m.network_out_mbps?.toFixed(2) || '-'}</td>
+                                        <td>${formatNumber(m.cpu_usage)}</td>
+                                        <td>${formatNumber(m.ram_used_gb)}</td>
+                                        <td>${formatNumber(m.ram_usage_percent)}</td>
+                                        <td>${formatNumber(m.temperature)}</td>
+                                        <td>${formatNumber(m.disk_usage_percent)}</td>
+                                        <td>${formatNumber(m.network_in_mbps)}</td>
+                                        <td>${formatNumber(m.network_out_mbps)}</td>
                                         <td>${m.uptime_hours || '-'}</td>
                                         <td>${new Date(m.timestamp).toLocaleString()}</td>
                                     </tr>
@@ -260,11 +267,11 @@ WHERE timestamp > NOW() - INTERVAL '24 hours';</pre>
                                 <tr>
                                     <td>${m.id}</td>
                                     <td><strong>${m.host_id}</strong></td>
-                                    <td>${m.cpu_usage?.toFixed(2)}</td>
-                                    <td>${m.ram_used_gb?.toFixed(2)}</td>
-                                    <td>${m.temperature?.toFixed(2)}</td>
-                                    <td>${m.disk_usage_percent?.toFixed(2)}</td>
-                                    <td>${m.network_in_mbps?.toFixed(2)}</td>
+                                    <td>${formatNumber(m.cpu_usage)}</td>
+                                    <td>${formatNumber(m.ram_used_gb)}</td>
+                                    <td>${formatNumber(m.temperature)}</td>
+                                    <td>${formatNumber(m.disk_usage_percent)}</td>
+                                    <td>${formatNumber(m.network_in_mbps)}</td>
                                     <td>${new Date(m.timestamp).toLocaleString()}</td>
                                 </tr>
                             `).join('')}
@@ -516,11 +523,11 @@ WHERE timestamp > NOW() - INTERVAL '24 hours';</pre>
                                 <tr style="animation: fadeIn 0.5s ease-in-out; ${index < 5 ? 'background: #e6fffa;' : ''}">
                                     <td><strong>${m.id}</strong></td>
                                     <td><strong style="color: #667eea;">${m.host_id}</strong></td>
-                                    <td>${m.cpu_usage?.toFixed(2)}</td>
-                                    <td>${m.ram_used_gb?.toFixed(2)}</td>
-                                    <td>${m.temperature?.toFixed(2)}</td>
-                                    <td>${m.disk_usage_percent?.toFixed(2)}</td>
-                                    <td>${m.network_in_mbps?.toFixed(2)}</td>
+                                    <td>${formatNumber(m.cpu_usage)}</td>
+                                    <td>${formatNumber(m.ram_used_gb)}</td>
+                                    <td>${formatNumber(m.temperature)}</td>
+                                    <td>${formatNumber(m.disk_usage_percent)}</td>
+                                    <td>${formatNumber(m.network_in_mbps)}</td>
                                     <td>${new Date(m.timestamp).toLocaleString()}</td>
                                 </tr>
                             `).join('')}

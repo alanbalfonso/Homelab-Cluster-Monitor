@@ -12,6 +12,15 @@ let currentData = {
 };
 
 /**
+ * Función auxiliar para formatear números de forma segura
+ */
+function formatNumber(value, decimals = 1) {
+    if (value === null || value === undefined || value === '') return 0;
+    const num = parseFloat(value);
+    return isNaN(num) ? 0 : num.toFixed(decimals);
+}
+
+/**
  * Inicialización
  */
 document.addEventListener('DOMContentLoaded', () => {
@@ -40,15 +49,41 @@ async function fetchStats() {
  */
 async function fetchLatestMetrics() {
     try {
-        const response = await fetch(`${BACKEND_URL}/api/metrics/latest`);
+        console.log('Intentando conectar a:', `${BACKEND_URL}/api/metrics/latest`);
+        const response = await fetch(`${BACKEND_URL}/api/metrics/latest`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        console.log('Respuesta recibida, status:', response.status);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
+        console.log('Datos recibidos:', data);
+        
         if (data.success) {
             currentData.latestMetrics = data.data;
             renderNodes();
+        } else {
+            throw new Error('La respuesta no fue exitosa');
         }
     } catch (error) {
-        console.error('Error obteniendo métricas:', error);
-        showError('Error conectando con el servidor');
+        console.error('❌ Error obteniendo métricas:', error);
+        console.error('Tipo de error:', error.name);
+        console.error('Mensaje:', error.message);
+        
+        let errorMsg = 'Error conectando con el servidor';
+        if (error.message.includes('fetch')) {
+            errorMsg = 'No se puede conectar al backend. Verifica que esté corriendo en http://localhost:3000';
+        } else if (error.message.includes('HTTP error')) {
+            errorMsg = `Error del servidor: ${error.message}`;
+        }
+        
+        showError(`${errorMsg}. Abre la consola (F12) para más detalles.`);
     }
 }
 
@@ -132,7 +167,7 @@ function createNodeCard(node) {
                 <div class="metric">
                     <div class="metric-label">💻 CPU</div>
                     <div class="metric-value">
-                        ${node.cpu_usage?.toFixed(1) || 0}
+                        ${formatNumber(node.cpu_usage)}
                         <span class="metric-unit">%</span>
                     </div>
                     <div class="progress-bar">
@@ -143,7 +178,7 @@ function createNodeCard(node) {
                 <div class="metric">
                     <div class="metric-label">🧠 RAM</div>
                     <div class="metric-value">
-                        ${node.ram_used_gb?.toFixed(1) || 0}
+                        ${formatNumber(node.ram_used_gb)}
                         <span class="metric-unit">GB</span>
                     </div>
                     <div class="progress-bar">
@@ -154,7 +189,7 @@ function createNodeCard(node) {
                 <div class="metric">
                     <div class="metric-label">🌡️ Temperatura</div>
                     <div class="metric-value">
-                        ${node.temperature?.toFixed(1) || 0}
+                        ${formatNumber(node.temperature)}
                         <span class="metric-unit">°C</span>
                     </div>
                     <div class="progress-bar">
@@ -165,7 +200,7 @@ function createNodeCard(node) {
                 <div class="metric">
                     <div class="metric-label">💾 Disco</div>
                     <div class="metric-value">
-                        ${node.disk_usage_percent?.toFixed(1) || 0}
+                        ${formatNumber(node.disk_usage_percent)}
                         <span class="metric-unit">%</span>
                     </div>
                     <div class="progress-bar">
@@ -195,23 +230,23 @@ function renderSummary() {
                 <div class="summary-stats">
                     <div class="summary-stat">
                         <strong>CPU Promedio:</strong>
-                        <span>${parseFloat(node.avg_cpu || 0).toFixed(1)}%</span>
+                        <span>${formatNumber(node.avg_cpu)}%</span>
                     </div>
                     <div class="summary-stat">
                         <strong>RAM Promedio:</strong>
-                        <span>${parseFloat(node.avg_ram || 0).toFixed(1)}%</span>
+                        <span>${formatNumber(node.avg_ram)}%</span>
                     </div>
                     <div class="summary-stat">
                         <strong>Temp Promedio:</strong>
-                        <span>${parseFloat(node.avg_temp || 0).toFixed(1)}°C</span>
+                        <span>${formatNumber(node.avg_temp)}°C</span>
                     </div>
                     <div class="summary-stat">
                         <strong>Temp Máxima:</strong>
-                        <span>${parseFloat(node.max_temp || 0).toFixed(1)}°C</span>
+                        <span>${formatNumber(node.max_temp)}°C</span>
                     </div>
                     <div class="summary-stat">
                         <strong>Temp Mínima:</strong>
-                        <span>${parseFloat(node.min_temp || 0).toFixed(1)}°C</span>
+                        <span>${formatNumber(node.min_temp)}°C</span>
                     </div>
                     <div class="summary-stat">
                         <strong>Muestras:</strong>
@@ -267,11 +302,11 @@ async function showNodeDetails(hostId) {
                             ${data.data.map(m => `
                                 <tr style="border-bottom: 1px solid #e2e8f0;">
                                     <td style="padding: 8px;">${new Date(m.timestamp).toLocaleTimeString()}</td>
-                                    <td style="padding: 8px;">${m.cpu_usage?.toFixed(1)}</td>
-                                    <td style="padding: 8px;">${m.ram_used_gb?.toFixed(1)}</td>
-                                    <td style="padding: 8px;">${m.temperature?.toFixed(1)}</td>
-                                    <td style="padding: 8px;">${m.network_in_mbps?.toFixed(1)} Mbps</td>
-                                    <td style="padding: 8px;">${m.network_out_mbps?.toFixed(1)} Mbps</td>
+                                    <td style="padding: 8px;">${formatNumber(m.cpu_usage)}</td>
+                                    <td style="padding: 8px;">${formatNumber(m.ram_used_gb)}</td>
+                                    <td style="padding: 8px;">${formatNumber(m.temperature)}</td>
+                                    <td style="padding: 8px;">${formatNumber(m.network_in_mbps)} Mbps</td>
+                                    <td style="padding: 8px;">${formatNumber(m.network_out_mbps)} Mbps</td>
                                 </tr>
                             `).join('')}
                         </tbody>
