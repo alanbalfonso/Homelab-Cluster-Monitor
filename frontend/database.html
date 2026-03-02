@@ -32,21 +32,21 @@
             <button onclick="loadSummary()">Resumen 24h</button>
             <button onclick="executeCustomQuery()">Consulta Personalizada</button>
             <button onclick="refreshStats()">Actualizar Estadísticas</button>
-            <button onclick="toggleRealtimeView()" id="realtimeBtn" style="background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);">
+            <button onclick="toggleRealtimeView()" id="realtimeBtn" style="background: #22c55e;">
                 🔴 Tiempo Real: OFF
             </button>
         </div>
 
         <!-- Panel de Inserción Manual -->
-        <div class="section" style="background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%); border-left: 4px solid #38b2ac;">
+        <div class="section" style="background: #0f172a; border-left: 4px solid #22c55e;">
             <h2>➕ Inserción Manual de Datos</h2>
-            <p style="color: #2c7a7b; margin-bottom: 16px; font-size: 14px;">
+            <p style="color: #94a3b8; margin-bottom: 16px; font-size: 14px;">
                 Inserta métricas manualmente para demostrar la entrada de datos en tiempo real
             </p>
             <form id="manualInsertForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: end;">
                 <div>
-                    <label style="display: block; font-size: 12px; color: #2d3748; margin-bottom: 4px; font-weight: 600;">Nodo:</label>
-                    <select id="nodeSelect" required style="width: 100%; padding: 10px; border: 2px solid #cbd5e0; border-radius: 8px; font-size: 14px;">
+                    <label style="display: block; font-size: 12px; color: #e2e8f0; margin-bottom: 4px; font-weight: 600;">Nodo:</label>
+                    <select id="nodeSelect" required style="width: 100%; padding: 10px; border: 2px solid #334155; border-radius: 8px; font-size: 14px; background: #1e293b; color: #e2e8f0;">
                         <option value="mini-pc-01">mini-pc-01</option>
                         <option value="mini-pc-02">mini-pc-02</option>
                         <option value="mini-pc-03">mini-pc-03</option>
@@ -55,18 +55,18 @@
                     </select>
                 </div>
                 <div>
-                    <label style="display: block; font-size: 12px; color: #2d3748; margin-bottom: 4px; font-weight: 600;">CPU %:</label>
-                    <input type="number" id="cpuInput" min="0" max="100" step="0.1" placeholder="0-100" required style="width: 100%; padding: 10px; border: 2px solid #cbd5e0; border-radius: 8px; font-size: 14px;">
+                    <label style="display: block; font-size: 12px; color: #e2e8f0; margin-bottom: 4px; font-weight: 600;">CPU %:</label>
+                    <input type="number" id="cpuInput" min="0" max="100" step="0.1" placeholder="0-100" required style="width: 100%; padding: 10px; border: 2px solid #334155; border-radius: 8px; font-size: 14px; background: #1e293b; color: #e2e8f0;">
                 </div>
                 <div>
-                    <label style="display: block; font-size: 12px; color: #2d3748; margin-bottom: 4px; font-weight: 600;">RAM (GB):</label>
-                    <input type="number" id="ramInput" min="0" max="32" step="0.1" placeholder="0-32" required style="width: 100%; padding: 10px; border: 2px solid #cbd5e0; border-radius: 8px; font-size: 14px;">
+                    <label style="display: block; font-size: 12px; color: #e2e8f0; margin-bottom: 4px; font-weight: 600;">RAM (GB):</label>
+                    <input type="number" id="ramInput" min="0" max="32" step="0.1" placeholder="0-32" required style="width: 100%; padding: 10px; border: 2px solid #334155; border-radius: 8px; font-size: 14px; background: #1e293b; color: #e2e8f0;">
                 </div>
                 <div>
-                    <label style="display: block; font-size: 12px; color: #2d3748; margin-bottom: 4px; font-weight: 600;">Temp °C:</label>
-                    <input type="number" id="tempInput" min="20" max="100" step="0.1" placeholder="20-100" required style="width: 100%; padding: 10px; border: 2px solid #cbd5e0; border-radius: 8px; font-size: 14px;">
+                    <label style="display: block; font-size: 12px; color: #e2e8f0; margin-bottom: 4px; font-weight: 600;">Temp °C:</label>
+                    <input type="number" id="tempInput" min="20" max="100" step="0.1" placeholder="20-100" required style="width: 100%; padding: 10px; border: 2px solid #334155; border-radius: 8px; font-size: 14px; background: #1e293b; color: #e2e8f0;">
                 </div>
-                <button type="submit" style="padding: 10px 20px; background: linear-gradient(135deg, #38b2ac 0%, #319795 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">
+                <button type="submit" style="padding: 10px 20px; background: #22c55e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">
                     ✓ Insertar Métrica
                 </button>
             </form>
@@ -361,11 +361,11 @@ WHERE timestamp > NOW() - INTERVAL '24 hours';</pre>
                     const columns = Object.keys(data.data[0]);
                     
                     const html = `
-                        <div style="margin-bottom: 10px; padding: 10px; background: #e6fffa; border-left: 4px solid #38b2ac; border-radius: 4px;">
-                            <strong>Consulta ejecutada exitosamente</strong><br>
-                            <small>Filas retornadas: ${data.rowCount}</small>
+                        <div style="margin-bottom: 10px; padding: 10px; background: #166534; border-left: 4px solid #22c55e; border-radius: 4px;">
+                            <strong style="color: #86efac;">Consulta ejecutada exitosamente</strong><br>
+                            <small style="color: #86efac;">Filas retornadas: ${data.rowCount}</small>
                         </div>
-                        <pre style="background: #2d3748; color: #68d391; padding: 10px; border-radius: 4px; font-size: 12px;">${query}</pre>
+                        <pre style="background: #0f172a; color: #22c55e; padding: 10px; border-radius: 4px; font-size: 12px; border: 1px solid #334155;">${query}</pre>
                         <table>
                             <thead>
                                 <tr>
@@ -378,7 +378,7 @@ WHERE timestamp > NOW() - INTERVAL '24 hours';</pre>
                                         ${columns.map(col => {
                                             let value = row[col];
                                             // Formatear valores especiales
-                                            if (value === null) value = '<i style="color: #a0aec0;">NULL</i>';
+                                            if (value === null) value = '<i style="color: #64748b;">NULL</i>';
                                             else if (typeof value === 'number') value = value.toFixed ? value.toFixed(2) : value;
                                             else if (value instanceof Date || (typeof value === 'string' && value.match(/^\d{4}-\d{2}-\d{2}/))) {
                                                 try {
@@ -395,10 +395,10 @@ WHERE timestamp > NOW() - INTERVAL '24 hours';</pre>
                     document.getElementById('results').innerHTML = html;
                 } else if (data.success && data.data.length === 0) {
                     document.getElementById('results').innerHTML = `
-                        <div style="padding: 40px; text-align: center; color: #718096;">
+                        <div style="padding: 40px; text-align: center; color: #94a3b8;">
                             <h3>Consulta ejecutada exitosamente</h3>
                             <p>No se encontraron resultados</p>
-                            <pre style="background: #2d3748; color: #68d391; padding: 10px; border-radius: 4px; font-size: 12px; text-align: left;">${query}</pre>
+                            <pre style="background: #0f172a; color: #22c55e; padding: 10px; border-radius: 4px; font-size: 12px; text-align: left; border: 1px solid #334155;">${query}</pre>
                         </div>
                     `;
                 }
@@ -425,11 +425,11 @@ WHERE timestamp > NOW() - INTERVAL '24 hours';</pre>
             
             if (realtimeMode) {
                 btn.textContent = '🟢 Tiempo Real: ON';
-                btn.style.background = 'linear-gradient(135deg, #48bb78 0%, #38a169 100%)';
+                btn.style.background = '#22c55e';
                 startRealtimeMode();
             } else {
                 btn.textContent = '🔴 Tiempo Real: OFF';
-                btn.style.background = 'linear-gradient(135deg, #f56565 0%, #e53e3e 100%)';
+                btn.style.background = '#ef4444';
                 stopRealtimeMode();
             }
         }
@@ -449,10 +449,10 @@ WHERE timestamp > NOW() - INTERVAL '24 hours';</pre>
             }
 
             document.getElementById('results').innerHTML = `
-                <div style="background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%); padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px;">
-                    <h3 style="color: #2c7a7b; margin-bottom: 10px;">🔴 Modo Tiempo Real Activado</h3>
-                    <p style="color: #2d3748; font-size: 14px;">Las métricas se actualizarán automáticamente cada 5 segundos</p>
-                    <p style="color: #718096; font-size: 12px; margin-top: 8px;">Total de métricas: <strong id="totalCount">${lastMetricCount}</strong></p>
+                <div style="background: #166534; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px; border: 1px solid #22c55e;">
+                    <h3 style="color: #86efac; margin-bottom: 10px;">🔴 Modo Tiempo Real Activado</h3>
+                    <p style="color: #e2e8f0; font-size: 14px;">Las métricas se actualizarán automáticamente cada 5 segundos</p>
+                    <p style="color: #94a3b8; font-size: 12px; margin-top: 8px;">Total de métricas: <strong id="totalCount">${lastMetricCount}</strong></p>
                 </div>
                 <div id="realtimeMetrics"></div>
             `;
@@ -494,7 +494,7 @@ WHERE timestamp > NOW() - INTERVAL '24 hours';</pre>
                     
                     // Resaltar si hay nuevas métricas
                     if (currentCount > lastMetricCount) {
-                        totalCountElem.style.color = '#38b2ac';
+                        totalCountElem.style.color = '#22c55e';
                         totalCountElem.style.fontSize = '18px';
                         setTimeout(() => {
                             totalCountElem.style.color = '';
@@ -520,9 +520,9 @@ WHERE timestamp > NOW() - INTERVAL '24 hours';</pre>
                         </thead>
                         <tbody>
                             ${allMetrics.slice(0, 20).map((m, index) => `
-                                <tr style="animation: fadeIn 0.5s ease-in-out; ${index < 5 ? 'background: #e6fffa;' : ''}">
+                                <tr style="animation: fadeIn 0.5s ease-in-out; ${index < 5 ? 'background: #166534;' : ''}">
                                     <td><strong>${m.id}</strong></td>
-                                    <td><strong style="color: #667eea;">${m.host_id}</strong></td>
+                                    <td><strong style="color: #3b82f6;">${m.host_id}</strong></td>
                                     <td>${formatNumber(m.cpu_usage)}</td>
                                     <td>${formatNumber(m.ram_used_gb)}</td>
                                     <td>${formatNumber(m.temperature)}</td>
@@ -551,7 +551,7 @@ WHERE timestamp > NOW() - INTERVAL '24 hours';</pre>
             const temperature = parseFloat(document.getElementById('tempInput').value);
             
             const resultDiv = document.getElementById('insertResult');
-            resultDiv.innerHTML = '<div style="padding: 10px; background: #bee3f8; color: #2c5282; border-radius: 8px;">⏳ Insertando métrica...</div>';
+            resultDiv.innerHTML = '<div style="padding: 10px; background: #1e40af; color: #93c5fd; border-radius: 8px; border: 1px solid #3b82f6;">⏳ Insertando métrica...</div>';
             
             try {
                 const response = await fetch(`${API_URL}/metrics/manual`, {
@@ -571,7 +571,7 @@ WHERE timestamp > NOW() - INTERVAL '24 hours';</pre>
                 
                 if (data.success) {
                     resultDiv.innerHTML = `
-                        <div style="padding: 12px; background: #c6f6d5; color: #22543d; border-radius: 8px; border-left: 4px solid #38a169;">
+                        <div style="padding: 12px; background: #166534; color: #86efac; border-radius: 8px; border-left: 4px solid #22c55e;">
                             <strong>✓ Métrica insertada correctamente</strong><br>
                             <small>ID: ${data.data.id} | Host: ${data.data.host_id} | Timestamp: ${new Date(data.data.timestamp).toLocaleString()}</small>
                         </div>

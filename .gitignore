@@ -56,3 +56,6 @@ terraform.tfstate.backup
 .DS_Store
 *.log
 *.tmp
+
+# K6 test results
+performance/k6-results.json

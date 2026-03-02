@@ -283,6 +283,61 @@ HCM/
 2. Revisa logs: `docker-compose logs mini-pc-01`
 3. Verifica red: `docker network inspect hcm_hcm-network`
 
+## 🧪 Pruebas de Carga con K6
+
+El proyecto incluye pruebas de carga para evaluar el rendimiento del backend API.
+
+### Instalación de K6
+
+```powershell
+# Con Chocolatey (Windows)
+choco install k6 -y
+
+# Verificar instalación
+k6 version
+```
+
+### Ejecutar Pruebas
+
+```powershell
+# 1. Asegúrate de que los servicios estén corriendo
+docker-compose up -d
+
+# 2. Ejecutar pruebas de carga
+k6 run performance/k6-load-test.js
+```
+
+### Métricas Medidas
+
+- ⏱️ **Tiempos de respuesta:** Promedio, P95, P99
+- ✅ **Tasa de éxito/error** de requests
+- 🔥 **Throughput:** Requests por segundo
+- 👥 **Carga progresiva:** 10→50→100 usuarios virtuales
+
+### Perfil de Carga
+
+| Fase | Duración | Usuarios | Descripción |
+|------|----------|----------|-------------|
+| Ramp-up | 30s | 0→10 | Calentamiento |
+| Sostenido | 1m | 10 | Carga ligera |
+| Incremento | 30s | 10→20 | Aumento gradual |
+| Sostenido | 1m | 20 | Carga media |
+| Pico | 30s | 20→50 | Máxima carga |
+| Sostenido | 1m | 50 | Estrés sostenido |
+| Ramp-down | 30s | 50→0 | Enfriamiento |
+
+**Duración total:** ~5 minutos
+
+### Resultados
+
+Los resultados se guardan en:
+- **Consola:** Reporte detallado en tiempo real
+- **JSON:** `performance/k6-results.json`
+
+### Documentación Completa
+
+📖 **[Guía de Pruebas K6](performance/TESTING_GUIDE.md)**
+
 ## Próximas Mejoras
 
 - [ ] Gráficas con Chart.js para visualización histórica
