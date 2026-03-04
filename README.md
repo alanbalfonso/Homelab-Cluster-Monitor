@@ -9,10 +9,10 @@ Sistema completo de monitoreo para cluster de mini PCs con simulación de datos,
 - **API REST** completa con Express.js
 - **Frontend interactivo** con actualización en tiempo real
 - **Docker Compose** para orquestación completa
-- **Métricas completas**: CPU, RAM, Disco, Red, Temperatura, Uptime- ✅ **Visualización de base de datos** desde la interfaz web
-- ✅ **Inserción manual de datos** para demostración y pruebas
-- ✅ **Modo tiempo real** para observar el llenado de la base de datos
-- ✅ **Consultas SQL personalizadas** desde la interfaz
+- **Métricas completas**: CPU, RAM, Disco, Red, Temperatura, Uptime-  **Visualización de base de datos** desde la interfaz web
+-  **Inserción manual de datos** para demostración y pruebas
+-  **Modo tiempo real** para observar el llenado de la base de datos
+-  **Consultas SQL personalizadas** desde la interfaz
 ## Arquitectura
 
 ```

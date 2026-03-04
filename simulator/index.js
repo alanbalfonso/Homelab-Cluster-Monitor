@@ -2,9 +2,10 @@ const axios = require('axios');
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://backend:3000';
 const HOST_ID = process.env.HOST_ID || 'mini-pc-01';
-const INTERVAL = parseInt(process.env.INTERVAL) || 30000; // 30 segundos para visualización en tiempo real
+// Visualización en tiempo real en 30 segundos
+const INTERVAL = parseInt(process.env.INTERVAL) || 30000;
 
-// Configuración de cada mini PC (características específicas)
+// Configuración de cada mini PC 
 const PC_PROFILES = {
     'mini-pc-01': {
         name: 'HomeServer-Alpha',
@@ -14,7 +15,7 @@ const PC_PROFILES = {
         baseTemp: 45,
         baseCpu: 35,
         baseRam: 8,
-        workloadPattern: 'high' // Alta carga constante (servidor principal)
+        workloadPattern: 'high' // Carga alta
     },
     'mini-pc-02': {
         name: 'HomeServer-Beta',
@@ -34,7 +35,7 @@ const PC_PROFILES = {
         baseTemp: 40,
         baseCpu: 25,
         baseRam: 5,
-        workloadPattern: 'low' // Carga baja (desarrollo)
+        workloadPattern: 'low' // Carga baja 
     },
     'mini-pc-04': {
         name: 'HomeServer-Delta',
@@ -67,12 +68,12 @@ let state = {
 };
 
 /**
- * Genera variación realista basada en el patrón de workload
+ * Variación realista basada en el patrón de workload
  */
 function generateMetrics(profile, iteration) {
     const time = Date.now() / 1000;
     
-    // CPU: Varía con patrón sinusoidal + ruido
+    // CPU: Variacion con ruido y patrón definido
     let cpu_usage = profile.baseCpu;
     
     switch(profile.workloadPattern) {
