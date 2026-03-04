@@ -49,6 +49,19 @@ app.post('/api/metrics', async (req, res) => {
     }
 
     try {
+        // Verificar que el nodo existe y no está eliminado
+        const nodeCheck = await pool.query(
+            'SELECT * FROM cluster_nodes WHERE host_id = $1 AND deleted_at IS NULL',
+            [host_id]
+        );
+
+        if (nodeCheck.rows.length === 0) {
+            return res.status(404).json({ 
+                success: false,
+                error: `Nodo ${host_id} no encontrado o está eliminado` 
+            });
+        }
+
         const query = `
             INSERT INTO metrics (
                 host_id, cpu_usage, ram_used_gb, ram_usage_percent,
@@ -84,12 +97,14 @@ app.post('/api/metrics', async (req, res) => {
 });
 
 /**
- * GET /api/nodes - Obtener todos los nodos del cluster
+ * GET /api/nodes - Obtener todos los nodos del cluster (solo activos)
  */
 app.get('/api/nodes', async (req, res) => {
     try {
         const result = await pool.query(`
-            SELECT * FROM cluster_nodes ORDER BY host_id
+            SELECT * FROM cluster_nodes 
+            WHERE deleted_at IS NULL 
+            ORDER BY host_id
         `);
         res.json({
             success: true,
@@ -99,6 +114,178 @@ app.get('/api/nodes', async (req, res) => {
     } catch (error) {
         console.error('Error obteniendo nodos:', error);
         res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * GET /api/nodes/all - Obtener TODOS los nodos incluyendo eliminados
+ */
+app.get('/api/nodes/all', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT *, 
+                CASE WHEN deleted_at IS NOT NULL THEN 'deleted' ELSE status END as current_status
+            FROM cluster_nodes 
+            ORDER BY deleted_at NULLS FIRST, host_id
+        `);
+        res.json({
+            success: true,
+            count: result.rows.length,
+            data: result.rows
+        });
+    } catch (error) {
+        console.error('Error obteniendo todos los nodos:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+/**
+ * POST /api/nodes - Crear un nuevo nodo
+ */
+app.post('/api/nodes', async (req, res) => {
+    const { host_id, hostname, location, cpu_cores, ram_total_gb, disk_total_gb, os } = req.body;
+
+    if (!host_id || !hostname) {
+        return res.status(400).json({ 
+            success: false, 
+            error: 'host_id y hostname son requeridos' 
+        });
+    }
+
+    try {
+        // Verificar si existe (incluso eliminado)
+        const existing = await pool.query(
+            'SELECT * FROM cluster_nodes WHERE host_id = $1',
+            [host_id]
+        );
+
+        if (existing.rows.length > 0) {
+            // Si existe pero está eliminado, reactivarlo
+            if (existing.rows[0].deleted_at !== null) {
+                const result = await pool.query(`
+                    UPDATE cluster_nodes 
+                    SET hostname = $2, location = $3, cpu_cores = $4, ram_total_gb = $5, 
+                        disk_total_gb = $6, os = $7, status = 'active', deleted_at = NULL
+                    WHERE host_id = $1
+                    RETURNING *
+                `, [host_id, hostname, location || 'Homelab', cpu_cores || 4, 
+                    ram_total_gb || 8, disk_total_gb || 256, os || 'Ubuntu 22.04']);
+                
+                console.log(`🔄 Nodo reactivado: ${host_id}`);
+                return res.json({ 
+                    success: true, 
+                    message: 'Nodo reactivado exitosamente',
+                    data: result.rows[0] 
+                });
+            }
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Ya existe un nodo con ese host_id' 
+            });
+        }
+
+        const result = await pool.query(`
+            INSERT INTO cluster_nodes (host_id, hostname, location, cpu_cores, ram_total_gb, disk_total_gb, os)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING *
+        `, [host_id, hostname, location || 'Homelab', cpu_cores || 4, 
+            ram_total_gb || 8, disk_total_gb || 256, os || 'Ubuntu 22.04']);
+
+        console.log(`✅ Nuevo nodo creado: ${host_id}`);
+        res.status(201).json({ 
+            success: true, 
+            message: 'Nodo creado exitosamente',
+            data: result.rows[0] 
+        });
+    } catch (error) {
+        console.error('Error creando nodo:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * DELETE /api/nodes/:host_id - Eliminar un nodo (soft delete por defecto)
+ */
+app.delete('/api/nodes/:host_id', async (req, res) => {
+    const { host_id } = req.params;
+    const { permanent } = req.query;
+
+    try {
+        // Verificar que existe
+        const existing = await pool.query(
+            'SELECT * FROM cluster_nodes WHERE host_id = $1',
+            [host_id]
+        );
+
+        if (existing.rows.length === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                error: 'Nodo no encontrado' 
+            });
+        }
+
+        if (permanent === 'true') {
+            // Eliminación permanente (también elimina métricas por CASCADE)
+            await pool.query('DELETE FROM cluster_nodes WHERE host_id = $1', [host_id]);
+            
+            console.log(`🗑️ Nodo eliminado permanentemente: ${host_id}`);
+            res.json({ 
+                success: true, 
+                message: `Nodo ${host_id} y sus métricas eliminados permanentemente`,
+                deletedNode: existing.rows[0]
+            });
+        } else {
+            // Soft delete
+            const result = await pool.query(`
+                UPDATE cluster_nodes 
+                SET deleted_at = CURRENT_TIMESTAMP, status = 'deleted'
+                WHERE host_id = $1
+                RETURNING *
+            `, [host_id]);
+
+            console.log(`⚠️ Nodo marcado como eliminado: ${host_id}`);
+            res.json({ 
+                success: true, 
+                message: `Nodo ${host_id} marcado como eliminado`,
+                data: result.rows[0]
+            });
+        }
+    } catch (error) {
+        console.error('Error eliminando nodo:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+/**
+ * POST /api/nodes/:host_id/restore - Restaurar un nodo eliminado
+ */
+app.post('/api/nodes/:host_id/restore', async (req, res) => {
+    const { host_id } = req.params;
+
+    try {
+        const result = await pool.query(`
+            UPDATE cluster_nodes 
+            SET deleted_at = NULL, status = 'active'
+            WHERE host_id = $1 AND deleted_at IS NOT NULL
+            RETURNING *
+        `, [host_id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ 
+                success: false, 
+                error: 'Nodo no encontrado o no está eliminado' 
+            });
+        }
+
+        console.log(`🔄 Nodo restaurado: ${host_id}`);
+        res.json({ 
+            success: true, 
+            message: `Nodo ${host_id} restaurado exitosamente`,
+            data: result.rows[0]
+        });
+    } catch (error) {
+        console.error('Error restaurando nodo:', error);
+        res.status(500).json({ success: false, error: error.message });
     }
 });
 
@@ -172,8 +359,9 @@ app.get('/api/metrics/summary', async (req, res) => {
  */
 app.get('/api/stats', async (req, res) => {
     try {
-        const totalNodes = await pool.query(`SELECT COUNT(*) as total FROM cluster_nodes`);
-        const activeNodes = await pool.query(`SELECT COUNT(*) as active FROM cluster_nodes WHERE status = 'active'`);
+        const totalNodes = await pool.query(`SELECT COUNT(*) as total FROM cluster_nodes WHERE deleted_at IS NULL`);
+        const activeNodes = await pool.query(`SELECT COUNT(*) as active FROM cluster_nodes WHERE status = 'active' AND deleted_at IS NULL`);
+        const deletedNodes = await pool.query(`SELECT COUNT(*) as deleted FROM cluster_nodes WHERE deleted_at IS NOT NULL`);
         const totalMetrics = await pool.query(`SELECT COUNT(*) as total FROM metrics`);
         const avgTemp = await pool.query(`
             SELECT AVG(temperature) as avg_temp
@@ -191,6 +379,7 @@ app.get('/api/stats', async (req, res) => {
             stats: {
                 total_nodes: parseInt(totalNodes.rows[0].total),
                 active_nodes: parseInt(activeNodes.rows[0].active),
+                deleted_nodes: parseInt(deletedNodes.rows[0].deleted),
                 total_metrics_recorded: parseInt(totalMetrics.rows[0].total),
                 avg_temperature_1h: parseFloat(avgTemp.rows[0].avg_temp || 0).toFixed(2),
                 avg_cpu_1h: parseFloat(avgCpu.rows[0].avg_cpu || 0).toFixed(2)
@@ -218,14 +407,14 @@ app.post('/api/metrics/manual', async (req, res) => {
     }
 
     try {
-        // Obtener información del nodo
+        // Obtener información del nodo (solo activos)
         const nodeResult = await pool.query(
-            'SELECT * FROM cluster_nodes WHERE host_id = $1',
+            'SELECT * FROM cluster_nodes WHERE host_id = $1 AND deleted_at IS NULL',
             [host_id]
         );
 
         if (nodeResult.rows.length === 0) {
-            return res.status(404).json({ error: 'Nodo no encontrado' });
+            return res.status(404).json({ error: 'Nodo no encontrado o está eliminado' });
         }
 
         const node = nodeResult.rows[0];

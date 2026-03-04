@@ -1,4 +1,4 @@
--- Creación de la base de datos del Homelab Cluster Monitor
+-- Creación de la base de datos de HCM
 CREATE TABLE IF NOT EXISTS cluster_nodes (
     id SERIAL PRIMARY KEY,
     host_id VARCHAR(50) UNIQUE NOT NULL,
@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS cluster_nodes (
     disk_total_gb INTEGER,
     os VARCHAR(50),
     status VARCHAR(20) DEFAULT 'active',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS metrics (
@@ -40,7 +41,7 @@ INSERT INTO cluster_nodes (host_id, hostname, location, cpu_cores, ram_total_gb,
     ('mini-pc-05', 'HomeServer-Epsilon', 'Estantería - IoT Hub', 4, 8, 128, 'Raspberry Pi OS')
 ON CONFLICT (host_id) DO NOTHING;
 
--- Vista para obtener últimas métricas por nodo
+-- Vista para obtener últimas métricas por nodo (solo nodos activos)
 CREATE OR REPLACE VIEW latest_metrics AS
 SELECT DISTINCT ON (m.host_id)
     m.id,
@@ -62,9 +63,10 @@ SELECT DISTINCT ON (m.host_id)
     cn.status
 FROM metrics m
 JOIN cluster_nodes cn ON m.host_id = cn.host_id
+WHERE cn.deleted_at IS NULL
 ORDER BY m.host_id, m.timestamp DESC;
 
--- Vista para promedios de las últimas 24 horas
+-- Vista para promedios de las últimas 24 horas (solo nodos activos)
 CREATE OR REPLACE VIEW metrics_24h_avg AS
 SELECT
     m.host_id,
@@ -78,4 +80,5 @@ SELECT
 FROM metrics m
 JOIN cluster_nodes cn ON m.host_id = cn.host_id
 WHERE m.timestamp > NOW() - INTERVAL '24 hours'
+AND cn.deleted_at IS NULL
 GROUP BY m.host_id, cn.hostname;

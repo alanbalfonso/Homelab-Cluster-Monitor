@@ -20,57 +20,105 @@
                 <div class="stat-value" id="totalNodes">-</div>
             </div>
             <div class="stat-card">
+                <div class="stat-label">Nodos Eliminados</div>
+                <div class="stat-value" id="deletedNodes" style="color: #ef4444;">-</div>
+            </div>
+            <div class="stat-card">
                 <div class="stat-label">Última Actualización</div>
                 <div class="stat-value" id="lastUpdate" style="font-size: 16px;">-</div>
             </div>
         </div>
 
         <div class="controls">
-            <button onclick="loadNodes()">Ver Nodos</button>
+            <button onclick="loadNodes()">Ver Nodos Activos</button>
+            <button onclick="loadAllNodesWithStatus()">Ver Todos los Nodos</button>
             <button onclick="loadLatestMetrics()">Últimas Métricas</button>
-            <button onclick="loadAllMetrics()">Todas las Métricas (últimas 100)</button>
+            <button onclick="loadAllMetrics()">Todas las Métricas (100)</button>
             <button onclick="loadSummary()">Resumen 24h</button>
-            <button onclick="executeCustomQuery()">Consulta Personalizada</button>
-            <button onclick="refreshStats()">Actualizar Estadísticas</button>
-            <button onclick="toggleRealtimeView()" id="realtimeBtn" style="background: #22c55e;">
+            <button onclick="executeCustomQuery()">Consulta SQL</button>
+            <button onclick="refreshStats()">🔄 Actualizar</button>
+            <button onclick="toggleRealtimeView()" id="realtimeBtn" style="background: #ef4444;">
                 🔴 Tiempo Real: OFF
             </button>
         </div>
 
-        <!-- Panel de Inserción Manual -->
-        <div class="section" style="background: #0f172a; border-left: 4px solid #22c55e;">
-            <h2>➕ Inserción Manual de Datos</h2>
+        <!-- Panel de Gestión de Nodos -->
+        <div class="section" style="background: #0f172a; border-left: 4px solid #3b82f6;">
+            <h2>🖥️ Gestión de Nodos</h2>
             <p style="color: #94a3b8; margin-bottom: 16px; font-size: 14px;">
-                Inserta métricas manualmente para demostrar la entrada de datos en tiempo real
+                Agrega nuevos nodos al cluster o elimina nodos existentes
             </p>
-            <form id="manualInsertForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: end;">
-                <div>
-                    <label style="display: block; font-size: 12px; color: #e2e8f0; margin-bottom: 4px; font-weight: 600;">Nodo:</label>
-                    <select id="nodeSelect" required style="width: 100%; padding: 10px; border: 2px solid #334155; border-radius: 8px; font-size: 14px; background: #1e293b; color: #e2e8f0;">
-                        <option value="mini-pc-01">mini-pc-01</option>
-                        <option value="mini-pc-02">mini-pc-02</option>
-                        <option value="mini-pc-03">mini-pc-03</option>
-                        <option value="mini-pc-04">mini-pc-04</option>
-                        <option value="mini-pc-05">mini-pc-05</option>
-                    </select>
-                </div>
-                <div>
-                    <label style="display: block; font-size: 12px; color: #e2e8f0; margin-bottom: 4px; font-weight: 600;">CPU %:</label>
-                    <input type="number" id="cpuInput" min="0" max="100" step="0.1" placeholder="0-100" required style="width: 100%; padding: 10px; border: 2px solid #334155; border-radius: 8px; font-size: 14px; background: #1e293b; color: #e2e8f0;">
-                </div>
-                <div>
-                    <label style="display: block; font-size: 12px; color: #e2e8f0; margin-bottom: 4px; font-weight: 600;">RAM (GB):</label>
-                    <input type="number" id="ramInput" min="0" max="32" step="0.1" placeholder="0-32" required style="width: 100%; padding: 10px; border: 2px solid #334155; border-radius: 8px; font-size: 14px; background: #1e293b; color: #e2e8f0;">
-                </div>
-                <div>
-                    <label style="display: block; font-size: 12px; color: #e2e8f0; margin-bottom: 4px; font-weight: 600;">Temp °C:</label>
-                    <input type="number" id="tempInput" min="20" max="100" step="0.1" placeholder="20-100" required style="width: 100%; padding: 10px; border: 2px solid #334155; border-radius: 8px; font-size: 14px; background: #1e293b; color: #e2e8f0;">
-                </div>
-                <button type="submit" style="padding: 10px 20px; background: #22c55e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">
-                    ✓ Insertar Métrica
-                </button>
-            </form>
-            <div id="insertResult" style="margin-top: 12px;"></div>
+            
+            <!-- Formulario para agregar nodo -->
+            <div style="background: #1e293b; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                <h3 style="color: #22c55e; margin-bottom: 12px; font-size: 16px;">➕ Agregar Nuevo Nodo</h3>
+                <form id="addNodeForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; align-items: end;">
+                    <div>
+                        <label style="display: block; font-size: 12px; color: #e2e8f0; margin-bottom: 4px; font-weight: 600;">Host ID *</label>
+                        <input type="text" id="newHostId" placeholder="mini-pc-06" required style="width: 100%; padding: 10px; border: 2px solid #334155; border-radius: 8px; font-size: 14px; background: #0f172a; color: #e2e8f0;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 12px; color: #e2e8f0; margin-bottom: 4px; font-weight: 600;">Hostname *</label>
+                        <input type="text" id="newHostname" placeholder="HomeServer-Zeta" required style="width: 100%; padding: 10px; border: 2px solid #334155; border-radius: 8px; font-size: 14px; background: #0f172a; color: #e2e8f0;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 12px; color: #e2e8f0; margin-bottom: 4px; font-weight: 600;">Ubicación</label>
+                        <input type="text" id="newLocation" placeholder="Homelab" value="Homelab" style="width: 100%; padding: 10px; border: 2px solid #334155; border-radius: 8px; font-size: 14px; background: #0f172a; color: #e2e8f0;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 12px; color: #e2e8f0; margin-bottom: 4px; font-weight: 600;">CPU Cores</label>
+                        <input type="number" id="newCpuCores" placeholder="4" value="4" min="1" max="64" style="width: 100%; padding: 10px; border: 2px solid #334155; border-radius: 8px; font-size: 14px; background: #0f172a; color: #e2e8f0;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 12px; color: #e2e8f0; margin-bottom: 4px; font-weight: 600;">RAM (GB)</label>
+                        <input type="number" id="newRam" placeholder="8" value="8" min="1" max="256" style="width: 100%; padding: 10px; border: 2px solid #334155; border-radius: 8px; font-size: 14px; background: #0f172a; color: #e2e8f0;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 12px; color: #e2e8f0; margin-bottom: 4px; font-weight: 600;">Disco (GB)</label>
+                        <input type="number" id="newDisk" placeholder="256" value="256" min="32" max="4096" style="width: 100%; padding: 10px; border: 2px solid #334155; border-radius: 8px; font-size: 14px; background: #0f172a; color: #e2e8f0;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 12px; color: #e2e8f0; margin-bottom: 4px; font-weight: 600;">Sistema Operativo</label>
+                        <select id="newOs" style="width: 100%; padding: 10px; border: 2px solid #334155; border-radius: 8px; font-size: 14px; background: #0f172a; color: #e2e8f0;">
+                            <option value="Ubuntu 22.04">Ubuntu 22.04</option>
+                            <option value="Ubuntu 20.04">Ubuntu 20.04</option>
+                            <option value="Debian 12">Debian 12</option>
+                            <option value="CentOS 8">CentOS 8</option>
+                            <option value="Windows Server 2022">Windows Server 2022</option>
+                        </select>
+                    </div>
+                    <button type="submit" style="padding: 10px 20px; background: #22c55e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">
+                        ✓ Agregar Nodo
+                    </button>
+                </form>
+                <div id="addNodeResult" style="margin-top: 12px;"></div>
+            </div>
+
+            <!-- Panel para eliminar nodo -->
+            <div style="background: #1e293b; padding: 16px; border-radius: 8px;">
+                <h3 style="color: #ef4444; margin-bottom: 12px; font-size: 16px;">🗑️ Eliminar Nodo</h3>
+                <form id="deleteNodeForm" style="display: flex; gap: 12px; align-items: end; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <label style="display: block; font-size: 12px; color: #e2e8f0; margin-bottom: 4px; font-weight: 600;">Seleccionar Nodo:</label>
+                        <select id="deleteNodeSelect" required style="width: 100%; padding: 10px; border: 2px solid #334155; border-radius: 8px; font-size: 14px; background: #0f172a; color: #e2e8f0;">
+                            <option value="">-- Seleccionar --</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button type="submit" style="padding: 10px 20px; background: #f59e0b; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;" title="Marca el nodo como eliminado pero conserva sus métricas">
+                            ⚠️ Soft Delete
+                        </button>
+                        <button type="button" onclick="permanentDelete()" style="padding: 10px 20px; background: #ef4444; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;" title="Elimina permanentemente el nodo y todas sus métricas">
+                            🗑️ Eliminar Permanente
+                        </button>
+                    </div>
+                </form>
+                <p style="color: #94a3b8; font-size: 12px; margin-top: 8px;">
+                    <strong>Soft Delete:</strong> Marca el nodo como eliminado (se puede restaurar). 
+                    <strong>Eliminar Permanente:</strong> Borra el nodo y todas sus métricas definitivamente.
+                </p>
+                <div id="deleteNodeResult" style="margin-top: 12px;"></div>
+            </div>
         </div>
 
         <div class="section">
@@ -125,12 +173,214 @@ WHERE timestamp > NOW() - INTERVAL '24 hours';</pre>
                         data.stats.total_metrics_recorded.toLocaleString();
                     document.getElementById('totalNodes').textContent = 
                         data.stats.active_nodes;
+                    document.getElementById('deletedNodes').textContent = 
+                        data.stats.deleted_nodes || '0';
                     document.getElementById('lastUpdate').textContent = 
                         new Date().toLocaleTimeString();
+                    
+                    // Actualizar selector de nodos para eliminar
+                    loadNodeSelector();
                 }
             } catch (error) {
                 console.error('Error:', error);
             }
+        }
+
+        // ==================== GESTIÓN DE NODOS ====================
+
+        async function loadNodeSelector() {
+            try {
+                const response = await fetch(`${API_URL}/nodes`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const select = document.getElementById('deleteNodeSelect');
+                    const currentValue = select.value;
+                    select.innerHTML = '<option value="">-- Seleccionar --</option>';
+                    
+                    data.data.forEach(node => {
+                        const option = document.createElement('option');
+                        option.value = node.host_id;
+                        option.textContent = `${node.host_id} (${node.hostname})`;
+                        select.appendChild(option);
+                    });
+                    
+                    if (currentValue) select.value = currentValue;
+                }
+            } catch (error) {
+                console.error('Error cargando nodos:', error);
+            }
+        }
+
+        document.getElementById('addNodeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const resultDiv = document.getElementById('addNodeResult');
+            resultDiv.innerHTML = '<div style="color: #3b82f6;">Agregando nodo...</div>';
+            
+            const nodeData = {
+                host_id: document.getElementById('newHostId').value.trim(),
+                hostname: document.getElementById('newHostname').value.trim(),
+                location: document.getElementById('newLocation').value.trim() || 'Homelab',
+                cpu_cores: parseInt(document.getElementById('newCpuCores').value) || 4,
+                ram_total_gb: parseInt(document.getElementById('newRam').value) || 8,
+                disk_total_gb: parseInt(document.getElementById('newDisk').value) || 256,
+                os: document.getElementById('newOs').value
+            };
+            
+            try {
+                const response = await fetch(`${API_URL}/nodes`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(nodeData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const action = data.restored ? 'restaurado' : 'agregado';
+                    resultDiv.innerHTML = `<div style="color: #22c55e; background: #166534; padding: 10px; border-radius: 4px;">✓ Nodo "${nodeData.host_id}" ${action} exitosamente</div>`;
+                    document.getElementById('addNodeForm').reset();
+                    refreshStats();
+                } else {
+                    resultDiv.innerHTML = `<div style="color: #ef4444; background: #7f1d1d; padding: 10px; border-radius: 4px;">✗ Error: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div style="color: #ef4444; background: #7f1d1d; padding: 10px; border-radius: 4px;">✗ Error de conexión: ${error.message}</div>`;
+            }
+        });
+
+        document.getElementById('deleteNodeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const hostId = document.getElementById('deleteNodeSelect').value;
+            if (!hostId) {
+                alert('Selecciona un nodo');
+                return;
+            }
+            
+            if (!confirm(`¿Estás seguro de hacer soft delete del nodo "${hostId}"?\n\nEl nodo se marcará como eliminado pero sus métricas se conservarán.`)) {
+                return;
+            }
+            
+            await deleteNode(hostId, false);
+        });
+
+        async function permanentDelete() {
+            const hostId = document.getElementById('deleteNodeSelect').value;
+            if (!hostId) {
+                alert('Selecciona un nodo');
+                return;
+            }
+            
+            if (!confirm(`⚠️ ADVERTENCIA: Eliminar permanentemente "${hostId}"?\n\nEsta acción NO se puede deshacer.\nSe eliminarán el nodo Y TODAS sus métricas.`)) {
+                return;
+            }
+            
+            await deleteNode(hostId, true);
+        }
+
+        async function deleteNode(hostId, permanent) {
+            const resultDiv = document.getElementById('deleteNodeResult');
+            resultDiv.innerHTML = '<div style="color: #f59e0b;">Eliminando nodo...</div>';
+            
+            try {
+                const url = permanent ? `${API_URL}/nodes/${hostId}?permanent=true` : `${API_URL}/nodes/${hostId}`;
+                const response = await fetch(url, { method: 'DELETE' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    const tipo = permanent ? 'eliminado permanentemente' : 'marcado como eliminado (soft delete)';
+                    resultDiv.innerHTML = `<div style="color: #22c55e; background: #166534; padding: 10px; border-radius: 4px;">✓ Nodo "${hostId}" ${tipo}</div>`;
+                    document.getElementById('deleteNodeSelect').value = '';
+                    refreshStats();
+                } else {
+                    resultDiv.innerHTML = `<div style="color: #ef4444; background: #7f1d1d; padding: 10px; border-radius: 4px;">✗ Error: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div style="color: #ef4444; background: #7f1d1d; padding: 10px; border-radius: 4px;">✗ Error de conexión: ${error.message}</div>`;
+            }
+        }
+
+        async function loadAllNodesWithStatus() {
+            document.getElementById('sectionTitle').textContent = 'Todos los Nodos (Incluyendo Eliminados)';
+            document.getElementById('results').innerHTML = '<div class="loading">Cargando...</div>';
+            
+            try {
+                const response = await fetch(`${API_URL}/nodes/all`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const html = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Host ID</th>
+                                    <th>Hostname</th>
+                                    <th>Ubicación</th>
+                                    <th>CPU</th>
+                                    <th>RAM</th>
+                                    <th>Disco</th>
+                                    <th>OS</th>
+                                    <th>Estado</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.data.map(node => {
+                                    const isDeleted = node.deleted_at !== null;
+                                    const status = isDeleted 
+                                        ? '<span style="color: #ef4444;">🗑️ Eliminado</span>' 
+                                        : '<span style="color: #22c55e;">✓ Activo</span>';
+                                    const action = isDeleted 
+                                        ? `<button onclick="restoreNode('${node.host_id}')" style="padding: 4px 8px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">🔄 Restaurar</button>`
+                                        : `<button onclick="softDeleteFromTable('${node.host_id}')" style="padding: 4px 8px; background: #f59e0b; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">⚠️ Eliminar</button>`;
+                                    return `
+                                        <tr style="${isDeleted ? 'opacity: 0.6; background: #1a1a2e;' : ''}">
+                                            <td><strong>${node.host_id}</strong></td>
+                                            <td>${node.hostname}</td>
+                                            <td>${node.location}</td>
+                                            <td>${node.cpu_cores}</td>
+                                            <td>${node.ram_total_gb} GB</td>
+                                            <td>${node.disk_total_gb} GB</td>
+                                            <td>${node.os}</td>
+                                            <td>${status}</td>
+                                            <td>${action}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                    document.getElementById('results').innerHTML = html;
+                }
+            } catch (error) {
+                document.getElementById('results').innerHTML = 
+                    `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+
+        async function restoreNode(hostId) {
+            if (!confirm(`¿Restaurar el nodo "${hostId}"?`)) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/nodes/${hostId}/restore`, { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(`✓ Nodo "${hostId}" restaurado exitosamente`);
+                    loadAllNodesWithStatus();
+                    refreshStats();
+                } else {
+                    alert(`Error: ${data.error}`);
+                }
+            } catch (error) {
+                alert(`Error de conexión: ${error.message}`);
+            }
+        }
+
+        async function softDeleteFromTable(hostId) {
+            if (!confirm(`¿Marcar "${hostId}" como eliminado (soft delete)?`)) return;
+            await deleteNode(hostId, false);
+            loadAllNodesWithStatus();
         }
 
         async function loadNodes() {
@@ -539,73 +789,6 @@ WHERE timestamp > NOW() - INTERVAL '24 hours';</pre>
                 console.error('Error cargando métricas en tiempo real:', error);
             }
         }
-
-        // ==================== INSERCIÓN MANUAL ====================
-        
-        document.getElementById('manualInsertForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const host_id = document.getElementById('nodeSelect').value;
-            const cpu_usage = parseFloat(document.getElementById('cpuInput').value);
-            const ram_used_gb = parseFloat(document.getElementById('ramInput').value);
-            const temperature = parseFloat(document.getElementById('tempInput').value);
-            
-            const resultDiv = document.getElementById('insertResult');
-            resultDiv.innerHTML = '<div style="padding: 10px; background: #1e40af; color: #93c5fd; border-radius: 8px; border: 1px solid #3b82f6;">⏳ Insertando métrica...</div>';
-            
-            try {
-                const response = await fetch(`${API_URL}/metrics/manual`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        host_id,
-                        cpu_usage,
-                        ram_used_gb,
-                        temperature
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    resultDiv.innerHTML = `
-                        <div style="padding: 12px; background: #166534; color: #86efac; border-radius: 8px; border-left: 4px solid #22c55e;">
-                            <strong>✓ Métrica insertada correctamente</strong><br>
-                            <small>ID: ${data.data.id} | Host: ${data.data.host_id} | Timestamp: ${new Date(data.data.timestamp).toLocaleString()}</small>
-                        </div>
-                    `;
-                    
-                    // Limpiar formulario
-                    document.getElementById('cpuInput').value = '';
-                    document.getElementById('ramInput').value = '';
-                    document.getElementById('tempInput').value = '';
-                    
-                    // Actualizar estadísticas
-                    refreshStats();
-                    
-                    // Si está en modo tiempo real, actualizar
-                    if (realtimeMode) {
-                        loadRealtimeMetrics();
-                    }
-                    
-                    // Limpiar mensaje después de 5 segundos
-                    setTimeout(() => {
-                        resultDiv.innerHTML = '';
-                    }, 5000);
-                } else {
-                    throw new Error(data.error || 'Error desconocido');
-                }
-            } catch (error) {
-                resultDiv.innerHTML = `
-                    <div class="error">
-                        <strong>✗ Error al insertar métrica:</strong><br>
-                        ${error.message}
-                    </div>
-                `;
-            }
-        });
     </script>
 </body>
 </html>
