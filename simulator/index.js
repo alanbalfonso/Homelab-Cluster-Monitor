@@ -138,7 +138,7 @@ function generateMetrics(profile, iteration) {
 }
 
 /**
- * Envía métricas al backend
+ * Enviar métricas al backend
  */
 async function sendMetrics(metrics) {
     try {
@@ -159,14 +159,14 @@ async function main() {
     const profile = PC_PROFILES[HOST_ID];
     
     if (!profile) {
-        console.error(`❌ Perfil no encontrado para ${HOST_ID}`);
+        console.error(`Perfil no encontrado para ${HOST_ID}`);
         process.exit(1);
     }
     
-    console.log(`🖥️  Iniciando simulador: ${HOST_ID} (${profile.name})`);
-    console.log(`📊 Perfil: ${profile.cpu_cores} cores, ${profile.ram_total}GB RAM, ${profile.disk_total}GB Disco`);
-    console.log(`⚙️  Patrón de carga: ${profile.workloadPattern}`);
-    console.log(`🔄 Intervalo: ${INTERVAL}ms\n`);
+    console.log(`Iniciando simulador: ${HOST_ID} (${profile.name})`);
+    console.log(`Perfil: ${profile.cpu_cores} cores, ${profile.ram_total}GB RAM, ${profile.disk_total}GB Disco`);
+    console.log(`Patrón de carga: ${profile.workloadPattern}`);
+    console.log(`Intervalo: ${INTERVAL}ms\n`);
     
     // Esperar a que el backend esté listo
     let backendReady = false;
@@ -174,9 +174,9 @@ async function main() {
         try {
             await axios.get(`${BACKEND_URL}/health`);
             backendReady = true;
-            console.log(`✅ Backend conectado\n`);
+            console.log(`Backend conectado\n`);
         } catch (error) {
-            console.log(`⏳ Esperando backend...`);
+            console.log(`Esperando backend...`);
             await new Promise(resolve => setTimeout(resolve, 3000));
         }
     }
@@ -197,17 +197,17 @@ async function main() {
 
 // Manejo de señales
 process.on('SIGTERM', () => {
-    console.log(`\n🛑 [${HOST_ID}] Recibida señal SIGTERM, deteniendo...`);
+    console.log(`\n[${HOST_ID}] Recibida señal SIGTERM, deteniendo...`);
     process.exit(0);
 });
 
 process.on('SIGINT', () => {
-    console.log(`\n🛑 [${HOST_ID}] Recibida señal SIGINT, deteniendo...`);
+    console.log(`\n[${HOST_ID}] Recibida señal SIGINT, deteniendo...`);
     process.exit(0);
 });
 
 // Iniciar
 main().catch(error => {
-    console.error('❌ Error fatal:', error);
+    console.error('Error fatal:', error);
     process.exit(1);
 });

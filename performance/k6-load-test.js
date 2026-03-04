@@ -84,30 +84,30 @@ export function handleSummary(data) {
 function textSummary(data, options) {
     return `
 ═══════════════════════════════════════════════════════════
-  REPORTE DE PRUEBAS DE CARGA - HCM
+    REPORTE DE PRUEBAS DE CARGA - HCM
 ═══════════════════════════════════════════════════════════
 
-📊 RESUMEN GENERAL
-  ✓ Usuarios virtuales máx: ${data.metrics.vus_max.values.max}
-  ✓ Requests totales: ${data.metrics.http_reqs.values.count}
-  ✓ Duración total: ${(data.state.testRunDurationMs / 1000).toFixed(2)}s
+    RESUMEN GENERAL
+    Usuarios virtuales máx: ${data.metrics.vus_max.values.max}
+    Requests totales: ${data.metrics.http_reqs.values.count}
+    Duración total: ${(data.state.testRunDurationMs / 1000).toFixed(2)}s
 
-⏱️  TIEMPOS DE RESPUESTA
-  ✓ Promedio: ${data.metrics.http_req_duration.values.avg.toFixed(2)}ms
-  ✓ Mínimo: ${data.metrics.http_req_duration.values.min.toFixed(2)}ms
-  ✓ Máximo: ${data.metrics.http_req_duration.values.max.toFixed(2)}ms
-  ✓ P95: ${data.metrics.http_req_duration.values['p(95)'].toFixed(2)}ms
-  ✓ P99: ${data.metrics.http_req_duration.values['p(99)'].toFixed(2)}ms
+    TIEMPOS DE RESPUESTA
+    Promedio: ${data.metrics.http_req_duration.values.avg.toFixed(2)}ms
+    Mínimo: ${data.metrics.http_req_duration.values.min.toFixed(2)}ms
+    Máximo: ${data.metrics.http_req_duration.values.max.toFixed(2)}ms
+    P95: ${data.metrics.http_req_duration.values['p(95)'].toFixed(2)}ms
+    P99: ${data.metrics.http_req_duration.values['p(99)'].toFixed(2)}ms
 
-✅ TASA DE ÉXITO
-  ✓ Requests exitosos: ${((1 - data.metrics.http_req_failed.values.rate) * 100).toFixed(2)}%
-  ✓ Requests fallidos: ${(data.metrics.http_req_failed.values.rate * 100).toFixed(2)}%
-  ✓ Tasa de errores: ${(data.metrics.errors.values.rate * 100).toFixed(2)}%
+    TASA DE ÉXITO
+    Requests exitosos: ${((1 - data.metrics.http_req_failed.values.rate) * 100).toFixed(2)}%
+    Requests fallidos: ${(data.metrics.http_req_failed.values.rate * 100).toFixed(2)}%
+    Tasa de errores: ${(data.metrics.errors.values.rate * 100).toFixed(2)}%
 
-🌐 THROUGHPUT
-  ✓ Requests/seg: ${data.metrics.http_reqs.values.rate.toFixed(2)}
-  ✓ Data recibida: ${(data.metrics.data_received.values.count / 1024 / 1024).toFixed(2)} MB
-  ✓ Data enviada: ${(data.metrics.data_sent.values.count / 1024).toFixed(2)} KB
+    THROUGHPUT
+    Requests/seg: ${data.metrics.http_reqs.values.rate.toFixed(2)}
+    Data recibida: ${(data.metrics.data_received.values.count / 1024 / 1024).toFixed(2)} MB
+    Data enviada: ${(data.metrics.data_sent.values.count / 1024).toFixed(2)} KB
 
 ═══════════════════════════════════════════════════════════
 `;

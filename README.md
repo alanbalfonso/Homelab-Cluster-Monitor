@@ -59,26 +59,26 @@ docker-compose up --build
 
 La interfaz de base de datos (`database.html`) ofrece las siguientes funcionalidades:
 
-#### 📊 Visualización de Datos
+#### Visualización de Datos
 - **Ver Nodos**: Muestra todos los nodos del cluster con sus especificaciones
 - **Últimas Métricas**: Métricas más recientes de cada nodo
 - **Todas las Métricas**: Últimas 100 métricas agregadas
 - **Resumen 24h**: Estadísticas agregadas de las últimas 24 horas
 
-#### ⏱️ Modo Tiempo Real
+#### Modo Tiempo Real
 - Activa el botón "🔴 Tiempo Real" para ver cómo se llena la base de datos
 - Las métricas se actualizan automáticamente cada 5 segundos
 - Muestra el contador total de métricas con resaltado al detectar nuevas entradas
 - Las filas nuevas aparecen con animación y color destacado
 
-#### ➕ Inserción Manual de Datos
+#### Inserción Manual de Datos
 - Formulario para insertar métricas personalizadas
 - Selecciona el nodo (mini-pc-01 a mini-pc-05)
 - Ingresa valores de CPU (%), RAM (GB) y Temperatura (°C)
 - Confirma la inserción con feedback visual inmediato
 - Ideal para demostración y pruebas
 
-#### 🔍 Consultas SQL Personalizadas
+#### Consultas SQL Personalizadas
 - Ejecuta consultas SELECT directamente desde la interfaz
 - Visualización de resultados en formato tabla
 - Validación de seguridad (solo SELECT permitido)
