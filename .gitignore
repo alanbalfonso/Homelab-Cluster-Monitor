@@ -1,19 +1,103 @@
 # Dependencias de Node.js
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
 
-# Variables de entorno
+# Variables de entorno y configuración sensible
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+config/production.js
+config/secrets.js
+
+# Credenciales y claves
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+secrets/
+credentials/
+.credentials
+
+# Base de datos
+*.sql.backup
+*.dump
+*.sqlite
+*.sqlite3
+*.db
+backups/
 
 # Logs
 *.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
 
 # Archivos temporales
 *.tmp
+*.temp
 .DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
 
-# K6 test results
+# Archivos de pruebas y coverage
+coverage/
+.nyc_output/
+.coverage/
+*.lcov
 performance/k6-results.json
+performance/results/
 
-# IDE
+# Docker
+docker-compose.override.yml
+.dockerignore.local
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+!terraform.auto.tfvars.example
+.terraform/
+.terraform.lock.hcl
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# IDE y editores
 .vscode/
+!.vscode/extensions.json
+!.vscode/settings.json.example
 .idea/
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+
+# Sistema operativo
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+desktop.ini
+
+# Backups y archivos antiguos
+*.backup
+*.bak
+*.old
+*-old.*
+*-backup.*
+*.orig
