@@ -24,7 +24,7 @@ function formatNumber(value, decimals = 1) {
  * Inicialización
  */
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🚀 Homelab Cluster Monitor iniciado');
+    console.log('Homelab Cluster Monitor iniciado');
     refreshData();
 });
 
@@ -72,7 +72,7 @@ async function fetchLatestMetrics() {
             throw new Error('La respuesta no fue exitosa');
         }
     } catch (error) {
-        console.error('❌ Error obteniendo métricas:', error);
+        console.error('Error obteniendo métricas:', error);
         console.error('Tipo de error:', error.name);
         console.error('Mensaje:', error.message);
         
@@ -107,7 +107,7 @@ async function fetchSummary() {
  * Actualizar todos los datos
  */
 async function refreshData() {
-    console.log('🔄 Actualizando datos...');
+    console.log('Actualizando datos...');
     await Promise.all([
         fetchStats(),
         fetchLatestMetrics(),
@@ -134,7 +134,7 @@ function renderNodes() {
     const grid = document.getElementById('nodesGrid');
     
     if (currentData.latestMetrics.length === 0) {
-        grid.innerHTML = '<div class="loading">⏳ Esperando datos de los nodos...</div>';
+        grid.innerHTML = '<div class="loading">Esperando datos de los nodos...</div>';
         return;
     }
     
@@ -158,14 +158,14 @@ function createNodeCard(node) {
                 <div class="node-info">
                     <h3>${node.hostname}</h3>
                     <div class="host-id">${node.host_id}</div>
-                    <div class="location">📍 ${node.location}</div>
+                    <div class="location">${node.location}</div>
                 </div>
                 <span class="status-badge ${statusClass}">${node.status}</span>
             </div>
             
             <div class="metrics-grid">
                 <div class="metric">
-                    <div class="metric-label">💻 CPU</div>
+                    <div class="metric-label">CPU</div>
                     <div class="metric-value">
                         ${formatNumber(node.cpu_usage)}
                         <span class="metric-unit">%</span>
@@ -176,7 +176,7 @@ function createNodeCard(node) {
                 </div>
                 
                 <div class="metric">
-                    <div class="metric-label">🧠 RAM</div>
+                    <div class="metric-label">RAM</div>
                     <div class="metric-value">
                         ${formatNumber(node.ram_used_gb)}
                         <span class="metric-unit">GB</span>
@@ -187,7 +187,7 @@ function createNodeCard(node) {
                 </div>
                 
                 <div class="metric">
-                    <div class="metric-label">🌡️ Temperatura</div>
+                    <div class="metric-label">Temperatura</div>
                     <div class="metric-value">
                         ${formatNumber(node.temperature)}
                         <span class="metric-unit">°C</span>
@@ -198,7 +198,7 @@ function createNodeCard(node) {
                 </div>
                 
                 <div class="metric">
-                    <div class="metric-label">💾 Disco</div>
+                    <div class="metric-label">Disco</div>
                     <div class="metric-value">
                         ${formatNumber(node.disk_usage_percent)}
                         <span class="metric-unit">%</span>
@@ -338,11 +338,11 @@ function toggleAutoRefresh() {
     if (autoRefreshEnabled) {
         autoRefreshInterval = setInterval(refreshData, 5000); // Cada 5 segundos
         document.getElementById('autoRefreshStatus').textContent = 'ON';
-        document.getElementById('autoRefreshIcon').textContent = '⏸️';
+        document.getElementById('autoRefreshIcon').textContent = '⏸';
     } else {
         clearInterval(autoRefreshInterval);
         document.getElementById('autoRefreshStatus').textContent = 'OFF';
-        document.getElementById('autoRefreshIcon').textContent = '▶️';
+        document.getElementById('autoRefreshIcon').textContent = '▶';
     }
 }
 
@@ -386,7 +386,7 @@ function getStatusClass(node) {
  */
 function showError(message) {
     const grid = document.getElementById('nodesGrid');
-    grid.innerHTML = `<div class="loading" style="color: #f56565;">❌ ${message}</div>`;
+    grid.innerHTML = `<div class="loading" style="color: #f56565;">${message}</div>`;
 }
 
 // Cerrar modal al hacer clic fuera
