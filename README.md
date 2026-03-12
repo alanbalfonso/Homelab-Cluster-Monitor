@@ -1,43 +1,72 @@
 # Homelab Cluster Monitor (HCM)
 
-Sistema completo de monitoreo para cluster de mini PCs con simulación de datos, base de datos SQL y frontend interactivo.
+Sistema completo de monitoreo para cluster de mini PCs con arquitectura modular, simulación de datos realista, base de datos PostgreSQL y frontend interactivo.
 
 ## Características
 
-- **Simulación realista** de 5 mini PCs con patrones de carga diferentes
-- **Base de datos PostgreSQL** con esquema optimizado para métricas
-- **API REST** completa con Express.js
-- **Frontend interactivo** con actualización en tiempo real
-- **Docker Compose** para orquestación completa
-- **Métricas completas**: CPU, RAM, Disco, Red, Temperatura, Uptime-  **Visualización de base de datos** desde la interfaz web
--  **Inserción manual de datos** para demostración y pruebas
--  **Modo tiempo real** para observar el llenado de la base de datos
--  **Consultas SQL personalizadas** desde la interfaz
+- **Arquitectura modular** con separación de responsabilidades (MVC, OOP)
+- **Simulación realista** de 5 mini PCs con patrones de carga personalizables
+- **Base de datos PostgreSQL** con esquema optimizado e índices de rendimiento
+- **API REST modular** con Express.js y controladores separados
+- **Frontend con JavaScript modular** separado del HTML
+- **Docker Compose** para orquestación completa de 8 contenedores
+- **Métricas completas**: CPU, RAM, Disco, Red, Temperatura, Uptime
+- **Visualización de base de datos** con interfaz web dedicada
+- **Gestión CRUD de nodos** con soft delete y restauración
+- **Modo tiempo real** para monitoreo continuo
+- **Consultas SQL personalizadas** con protección contra inyección
+- **Tests de carga con K6** para evaluación de rendimiento
 ## Arquitectura
 
+El sistema utiliza una arquitectura modular distribuida en contenedores Docker:
+
 ```
-┌─────────────────┐
-│   Frontend      │  Puerto 8080 (Nginx)
-│   (HTML/CSS/JS) │
-└────────┬────────┘
-         │
-         ↓
-┌─────────────────┐
-│   Backend API   │  Puerto 3000 (Node.js + Express)
-│   (REST API)    │
-└────────┬────────┘
-         │
-         ↓
-┌─────────────────┐
-│   PostgreSQL    │  Puerto 5432
-│ (Base de Datos) │
-└─────────────────┘
-         ↑
-         │
-┌────────┴────────┐
-│  Simuladores    │  5 contenedores
-│  (Mini PCs)     │  Generan métricas cada 30s
-└─────────────────┘
+┌──────────────────────────────────────┐
+│           Frontend (Nginx)           │  Puerto 8080
+│  ├── HTML (estructura)               │
+│  ├── CSS (estilos)                   │
+│  └── JavaScript Modular              │
+│      ├── api.js (cliente HTTP)       │
+│      ├── utils.js (utilidades)       │
+│      ├── database.js (lógica BD)     │
+│      └── app.js (dashboard)          │
+└──────────────┬───────────────────────┘
+               │ HTTP/REST
+               ↓
+┌──────────────────────────────────────┐
+│      Backend API (Express.js)        │  Puerto 3000
+│  ├── config/                         │
+│  │   └── database.js                 │
+│  ├── controllers/                    │
+│  │   ├── nodesController.js          │
+│  │   ├── metricsController.js        │
+│  │   └── statsController.js          │
+│  ├── routes/                         │
+│  │   ├── nodes.js                    │
+│  │   ├── metrics.js                  │
+│  │   └── stats.js                    │
+│  └── index.js (entry point)          │
+└──────────────┬───────────────────────┘
+               │ PostgreSQL Pool
+               ↓
+┌──────────────────────────────────────┐
+│      PostgreSQL 15 Alpine            │  Puerto 5432
+│  ├── cluster_nodes (nodos)           │
+│  ├── metrics (métricas)              │
+│  ├── latest_metrics (vista)          │
+│  └── metrics_24h_avg (vista)         │
+└──────────────┬───────────────────────┘
+               ↑ Envío de métricas
+               │
+┌──────────────┴───────────────────────┐
+│     Simuladores (5 contenedores)     │
+│  ├── config/                         │
+│  │   └── profiles.js                 │
+│  ├── services/                       │
+│  │   ├── metricsGenerator.js (OOP)   │
+│  │   └── apiClient.js (HTTP)         │
+│  └── index.js (Simulator class)      │
+└──────────────────────────────────────┘
 ```
 
 ## Inicio Rápido
@@ -55,34 +84,40 @@ docker-compose up --build
 - **API Backend**: http://localhost:3000
 - **PostgreSQL**: localhost:5432
 
-### 3. Funcionalidades de la Interfaz de Base de Datos
+### 3. Funcionalidades de la Interfaz
 
-La interfaz de base de datos (`database.html`) ofrece las siguientes funcionalidades:
+#### Dashboard Principal (index.html)
+- Tarjetas de estado para cada nodo del cluster
+- Visualización en tiempo real con auto-refresh opcional
+- Indicadores visuales con código de colores según umbrales
+- Vista detallada al hacer clic en cada nodo
+- Resumen estadístico de 24 horas
 
-#### Visualización de Datos
-- **Ver Nodos**: Muestra todos los nodos del cluster con sus especificaciones
-- **Últimas Métricas**: Métricas más recientes de cada nodo
-- **Todas las Métricas**: Últimas 100 métricas agregadas
-- **Resumen 24h**: Estadísticas agregadas de las últimas 24 horas
+#### Interfaz de Base de Datos (database.html)
 
-#### Modo Tiempo Real
-- Activa el botón "🔴 Tiempo Real" para ver cómo se llena la base de datos
-- Las métricas se actualizan automáticamente cada 5 segundos
-- Muestra el contador total de métricas con resaltado al detectar nuevas entradas
-- Las filas nuevas aparecen con animación y color destacado
+**Gestión de Nodos:**
+- Agregar nuevos nodos al cluster con especificaciones completas
+- Eliminar nodos (soft delete o permanente)
+- Restaurar nodos eliminados
+- Ver todos los nodos con su estado actual
 
-#### Inserción Manual de Datos
-- Formulario para insertar métricas personalizadas
-- Selecciona el nodo (mini-pc-01 a mini-pc-05)
-- Ingresa valores de CPU (%), RAM (GB) y Temperatura (°C)
-- Confirma la inserción con feedback visual inmediato
-- Ideal para demostración y pruebas
+**Visualización de Métricas:**
+- Ver nodos activos con especificaciones
+- Últimas métricas de cada nodo con JOIN completo
+- Historial de métricas (últimas 100 entradas)
+- Resumen agregado de 24 horas por nodo
 
-#### Consultas SQL Personalizadas
-- Ejecuta consultas SELECT directamente desde la interfaz
-- Visualización de resultados en formato tabla
-- Validación de seguridad (solo SELECT permitido)
-- Ejemplos incluidos en la interfaz
+**Modo Tiempo Real:**
+- Actualización automática cada 5 segundos
+- Contador de métricas totales con detección de cambios
+- Resaltado visual de nuevas entradas
+- Animaciones de transición
+
+**Consultas SQL:**
+- Ejecutar consultas SELECT personalizadas
+- Protección contra inyección SQL
+- Visualización de resultados en tabla HTML
+- Manejo de valores NULL y tipos de datos especiales
 
 ### 4. Ver logs
 
@@ -109,29 +144,25 @@ docker-compose logs -f backend
 
 ## Endpoints de la API
 
-### Métricas
-
-- `POST /api/metrics` - Enviar métricas de un nodo (usado por simuladores)
-- `POST /api/metrics/manual` - Insertar métricas manualmente desde la interfaz
-- `GET /api/metrics/latest` - Últimas métricas de todos los nodos
-- `GET /api/metrics/history/:host_id` - Historial de un nodo (limit=100)
-- `GET /api/metrics/summary` - Resumen de 24h
-
 ### Nodos
+- `GET /api/nodes` - Lista de nodos activos
+- `GET /api/nodes/all` - Todos los nodos (incluye eliminados)
+- `POST /api/nodes` - Crear nuevo nodo o restaurar si existe
+- `DELETE /api/nodes/:hostId` - Soft delete de un nodo
+- `DELETE /api/nodes/:hostId?permanent=true` - Eliminación permanente
+- `POST /api/nodes/:hostId/restore` - Restaurar nodo eliminado
 
-- `GET /api/nodes` - Lista de todos los nodos del cluster
+### Métricas
+- `POST /api/metrics/batch` - Enviar batch de métricas (simuladores)
+- `POST /api/metrics/manual` - Insertar métricas manualmente
+- `GET /api/metrics/latest` - Últimas métricas de cada nodo
+- `GET /api/metrics/history/:host_id?limit=N` - Historial de un nodo
+- `GET /api/metrics/summary` - Resumen de 24 horas agregado
 
 ### Estadísticas
-
 - `GET /api/stats` - Estadísticas generales del cluster
-
-### Consultas
-
-- `POST /api/query` - Ejecutar consulta SQL personalizada (solo SELECT)
-
-### Sistema
-
-- `GET /health` - Health check del sistema
+- `POST /api/query` - Ejecutar consulta SQL (solo SELECT)
+- `GET /api/health` - Health check del sistema
 
 ### Ejemplo de uso
 
@@ -187,22 +218,55 @@ SELECT * FROM metrics_24h_avg;
 SELECT COUNT(*) FROM metrics;
 ```
 
-## Frontend
+## Arquitectura del Código
 
-El frontend ofrece:
+### Backend (Patrón MVC)
 
-- **Dashboard en tiempo real** con tarjetas de cada nodo
-- **Auto-refresh** opcional cada 5 segundos
-- **Vista detallada** con historial de cada nodo (click en tarjeta)
-- **Resumen de 24h** con promedios y estadísticas
-- **Indicadores visuales** con barras de progreso colorizadas
-- **Diseño responsive** para móviles y tablets
+**Capa de Configuración:**
+- `config/database.js`: Pool de conexiones PostgreSQL con manejo de errores
 
-### Características visuales
+**Capa de Controladores:**
+- `controllers/nodesController.js`: Lógica de negocio para CRUD de nodos
+- `controllers/metricsController.js`: Operaciones de métricas con validaciones
+- `controllers/statsController.js`: Estadísticas y queries con protección SQL
 
-- 🟢 Verde: Valores normales (< 50%)
-- 🟡 Amarillo: Valores medios (50-80%)
-- 🔴 Rojo: Valores altos (> 80%)
+**Capa de Rutas:**
+- `routes/nodes.js`: Definición de endpoints de nodos
+- `routes/metrics.js`: Definición de endpoints de métricas
+- `routes/stats.js`: Definición de endpoints de estadísticas
+
+**Punto de Entrada:**
+- `index.js`: Configuración de Express, middlewares, y montaje de rutas
+
+### Simulator (Programación Orientada a Objetos)
+
+**Configuración:**
+- `config/profiles.js`: Perfiles de hardware y patrones de carga
+
+**Servicios:**
+- `services/metricsGenerator.js`: Clase para generar métricas realistas
+- `services/apiClient.js`: Clase para comunicación HTTP con backend
+
+**Orquestador:**
+- `index.js`: Clase Simulator con ciclo de vida completo
+
+### Frontend (JavaScript Modular)
+
+**Módulos:**
+- `js/api.js`: Cliente HTTP reutilizable para todos los endpoints
+- `js/utils.js`: Funciones de utilidad (formateo, UI, validación)
+- `js/database.js`: Lógica específica de la interfaz de base de datos
+- `app.js`: Lógica del dashboard principal
+
+**Vistas:**
+- `index.html`: Dashboard principal
+- `database.html`: Interfaz de gestión de base de datos
+
+### Indicadores Visuales
+
+- Verde: Valores normales (< 50%)
+- Amarillo: Valores medios (50-80%)
+- Rojo: Valores altos (> 80%)
 
 ## Comandos Útiles
 
@@ -230,21 +294,60 @@ docker-compose restart mini-pc-01
 
 ```
 HCM/
-├── docker-compose.yml       # Orquestación de servicios
-├── backend/
-│   ├── Dockerfile
+├── docker-compose.yml              # Orquestación de servicios
+├── README.md                       # Documentación principal
+├── ARCHITECTURE.md                 # Guía de arquitectura detallada
+├── REFACTORING_SUMMARY.md          # Resumen de refactorización
+├── DATABASE_GUIDE.md               # Guía de base de datos
+│
+├── backend/                        # API REST modular
+│   ├── config/
+│   │   └── database.js             # Configuración de PostgreSQL
+│   ├── controllers/
+│   │   ├── nodesController.js      # CRUD de nodos
+│   │   ├── metricsController.js    # Operaciones de métricas
+│   │   └── statsController.js      # Estadísticas y queries
+│   ├── routes/
+│   │   ├── nodes.js                # Rutas de nodos
+│   │   ├── metrics.js              # Rutas de métricas
+│   │   └── stats.js                # Rutas de estadísticas
+│   ├── index.js                    # Punto de entrada
+│   ├── index-monolithic.js.backup  # Backup del código original
+│   ├── init.sql                    # Esquema de base de datos
 │   ├── package.json
-│   ├── index.js            # API REST
-│   └── init.sql            # Esquema de base de datos
-├── frontend/
+│   └── Dockerfile
+│
+├── frontend/                       # Interfaz web
+│   ├── js/
+│   │   ├── api.js                  # Cliente HTTP para backend
+│   │   ├── utils.js                # Funciones de utilidad
+│   │   └── database.js             # Lógica de database.html
+│   ├── index.html                  # Dashboard principal
+│   ├── database.html               # Interfaz de gestión de BD
+│   ├── app.js                      # Lógica del dashboard
+│   ├── styles.css                  # Estilos globales
 │   ├── Dockerfile
-│   ├── index.html          # UI principal
-│   ├── styles.css          # Estilos
-│   └── app.js              # Lógica del frontend
-└── simulator/
-    ├── Dockerfile
-    ├── package.json
-    └── index.js            # Simulador de mini PCs
+│   └── nginx.conf
+│
+├── simulator/                      # Generadores de métricas (OOP)
+│   ├── config/
+│   │   └── profiles.js             # Perfiles de mini-PCs
+│   ├── services/
+│   │   ├── metricsGenerator.js     # Clase generadora
+│   │   └── apiClient.js            # Cliente HTTP
+│   ├── index.js                    # Clase Simulator
+│   ├── index-monolithic.js.backup  # Backup del código original
+│   ├── package.json
+│   └── Dockerfile
+│
+├── performance/
+│   ├── k6-load-test.js             # Script de pruebas de carga
+│   └── TESTING_GUIDE.md            # Guía de testing
+│
+└── infraestructura/
+    ├── docker-compose.yml
+    ├── main.tf                     # Configuración Terraform
+    └── terraform.tfvars
 ```
 
 ## Configuración
@@ -283,7 +386,7 @@ HCM/
 2. Revisa logs: `docker-compose logs mini-pc-01`
 3. Verifica red: `docker network inspect hcm_hcm-network`
 
-## 🧪 Pruebas de Carga con K6
+## Pruebas de Carga con K6
 
 El proyecto incluye pruebas de carga para evaluar el rendimiento del backend API.
 
@@ -309,10 +412,10 @@ k6 run performance/k6-load-test.js
 
 ### Métricas Medidas
 
-- ⏱️ **Tiempos de respuesta:** Promedio, P95, P99
-- ✅ **Tasa de éxito/error** de requests
-- 🔥 **Throughput:** Requests por segundo
-- 👥 **Carga progresiva:** 10→50→100 usuarios virtuales
+- **Tiempos de respuesta:** Promedio, P95, P99
+- **Tasa de éxito/error** de requests
+- **Throughput:** Requests por segundo
+- **Carga progresiva:** 10→50→100 usuarios virtuales
 
 ### Perfil de Carga
 
@@ -336,16 +439,33 @@ Los resultados se guardan en:
 
 ### Documentación Completa
 
-📖 **[Guía de Pruebas K6](performance/TESTING_GUIDE.md)**
+ **[Guía de Pruebas K6](performance/TESTING_GUIDE.md)**
 
-## Próximas Mejoras
+## Documentación Adicional
 
-- [ ] Gráficas con Chart.js para visualización histórica
-- [ ] Alertas por email/Slack cuando métricas excedan umbrales
-- [ ] Exportar datos a CSV/JSON
-- [ ] Autenticación y usuarios
-- [ ] Panel de administración para agregar/eliminar nodos
-- [ ] WebSockets para actualizaciones en tiempo real sin polling
+- **ARCHITECTURE.md**: Guía completa de la arquitectura del sistema
+- **REFACTORING_SUMMARY.md**: Resumen del proceso de refactorización
+- **DATABASE_GUIDE.md**: Esquema de base de datos y consultas útiles
+- **performance/TESTING_GUIDE.md**: Guía de pruebas de rendimiento con K6
+
+## Desarrollo y Mejoras Futuras
+
+**Visualización:**
+- Gráficas históricas con Chart.js o D3.js
+- Dashboard con métricas en tiempo real vía WebSockets
+
+**Funcionalidad:**
+- Sistema de alertas configurable (email/Slack/webhook)
+- Exportación de datos en múltiples formatos
+- Autenticación y autorización con JWT
+- Rate limiting y throttling
+
+**Infraestructura:**
+- Tests unitarios y de integración
+- CI/CD con GitHub Actions
+- Monitoreo con Prometheus y Grafana
+- Cache con Redis
+- Logs centralizados con ELK stack
 
 ## Licencia
 
