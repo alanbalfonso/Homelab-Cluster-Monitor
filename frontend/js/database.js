@@ -186,7 +186,7 @@ function createNodeRow(node) {
     const isDeleted = node.deleted_at !== null;
     const status = isDeleted 
         ? '<span style="color: #ef4444;">Eliminado</span>' 
-        : '<span style="color: #22c55e;">✓ Activo</span>';
+        : '<span style="color: #22c55e;">Activo</span>';
     const action = isDeleted 
         ? `<button onclick="restoreNode('${node.host_id}')" style="padding: 4px 8px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Restaurar</button>`
         : `<button onclick="softDeleteFromTable('${node.host_id}')" style="padding: 4px 8px; background: #f59e0b; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Eliminar</button>`;
@@ -213,7 +213,7 @@ async function restoreNode(hostId) {
         const data = await api.nodes.restore(hostId);
         
         if (data.success) {
-            alert(`✓ Nodo "${hostId}" restaurado exitosamente`);
+            alert(`Nodo "${hostId}" restaurado exitosamente`);
             await loadAllNodesWithStatus();
             await refreshStats();
         }

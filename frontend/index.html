@@ -5,13 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Homelab Cluster Monitor</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
 <body>
     <div class="container">
         <!-- Header -->
         <header class="header">
             <div class="logo">
-                <div class="logo-icon">🖥️</div>
+                <div class="logo-icon">
+                    <span class="material-symbols-rounded">dns</span>
+                </div>
                 <div>
                     <h1>Homelab Cluster Monitor</h1>
                     <p class="subtitle">Sistema de Monitoreo en Tiempo Real</p>
@@ -40,10 +43,10 @@
         <!-- Controls -->
         <div class="controls">
             <button class="btn btn-primary" onclick="refreshData()">
-                <span>🔄</span> Actualizar
+                <span class="material-symbols-rounded">refresh</span> Actualizar
             </button>
             <button class="btn btn-secondary" onclick="toggleAutoRefresh()">
-                <span id="autoRefreshIcon">▶</span> Auto-refresh: <span id="autoRefreshStatus">OFF</span>
+                <span id="autoRefreshIcon" class="material-symbols-rounded">play_arrow</span> Auto-refresh: <span id="autoRefreshStatus">OFF</span>
             </button>
             <div class="last-update">
                 Última actualización: <span id="lastUpdate">Nunca</span>

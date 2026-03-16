@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HCM - Base de Datos</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
 <body>
     <div class="container">
@@ -35,7 +36,10 @@
             <button onclick="loadLatestMetrics()">Últimas Métricas</button>
             <button onclick="loadAllMetrics()">Todas las Métricas (100)</button>
             <button onclick="loadSummary()">Resumen 24h</button>
-            <button onclick="refreshStats()">🔄 Actualizar</button>
+            <button onclick="refreshStats()">
+                <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 6px;">refresh</span>
+                Actualizar
+            </button>
             <button onclick="toggleRealtimeView()" id="realtimeBtn" style="background: #ef4444;">
                 Tiempo Real: OFF
             </button>
@@ -43,7 +47,10 @@
 
         <!-- Panel de Gestión de Nodos -->
         <div class="section" style="background: #0f172a; border-left: 4px solid #3b82f6;">
-            <h2>🖥️ Gestión de Nodos</h2>
+            <h2>
+                <span class="material-symbols-rounded" style="vertical-align: middle; margin-right: 6px;">dns</span>
+                Gestión de Nodos
+            </h2>
             <p style="color: #94a3b8; margin-bottom: 16px; font-size: 14px;">
                 Agrega nuevos nodos al cluster o elimina nodos existentes
             </p>
@@ -87,7 +94,7 @@
                         </select>
                     </div>
                     <button type="submit" style="padding: 10px 20px; background: #22c55e; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px;">
-                        ✓ Agregar Nodo
+                        Agregar Nodo
                     </button>
                 </form>
                 <div id="addNodeResult" style="margin-top: 12px;"></div>
@@ -95,7 +102,7 @@
 
             <!-- Panel para eliminar nodo -->
             <div style="background: #1e293b; padding: 16px; border-radius: 8px;">
-                <h3 style="color: #ef4444; margin-bottom: 12px; font-size: 16px;">🗑️ Eliminar Nodo</h3>
+                <h3 style="color: #ef4444; margin-bottom: 12px; font-size: 16px;">Eliminar Nodo</h3>
                 <form id="deleteNodeForm" style="display: flex; gap: 12px; align-items: end; flex-wrap: wrap;">
                     <div style="flex: 1; min-width: 200px;">
                         <label style="display: block; font-size: 12px; color: #e2e8f0; margin-bottom: 4px; font-weight: 600;">Seleccionar Nodo:</label>
@@ -126,12 +133,9 @@
                 <div class="loading">Selecciona un botón para ver los datos de la base de datos</div>
             </div>
         </div>
-
-        <div class="section">
-        </div>
     </div>
 
-    <!-- Modular JavaScript -->
+    <!-- JavaScript -->
     <script src="js/api.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/database.js"></script>

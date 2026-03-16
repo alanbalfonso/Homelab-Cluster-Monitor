@@ -338,11 +338,11 @@ function toggleAutoRefresh() {
     if (autoRefreshEnabled) {
         autoRefreshInterval = setInterval(refreshData, 5000); // Cada 5 segundos
         document.getElementById('autoRefreshStatus').textContent = 'ON';
-        document.getElementById('autoRefreshIcon').textContent = '⏸';
+        document.getElementById('autoRefreshIcon').textContent = 'pause';
     } else {
         clearInterval(autoRefreshInterval);
         document.getElementById('autoRefreshStatus').textContent = 'OFF';
-        document.getElementById('autoRefreshIcon').textContent = '▶';
+        document.getElementById('autoRefreshIcon').textContent = 'play_arrow';
     }
 }
 

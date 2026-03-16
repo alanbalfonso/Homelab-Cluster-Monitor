@@ -39,12 +39,23 @@ body {
 }
 
 .logo-icon {
-    font-size: 48px;
+    font-size: 32px;
     background: #3b82f6;
     border-radius: 12px;
     width: 72px;
     height: 72px;
     display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.material-symbols-rounded {
+    font-family: 'Material Symbols Rounded', sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
 }
@@ -105,8 +116,8 @@ body {
 
 .btn {
     padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
+    border-radius: 999px;
+    border: 1.5px solid transparent;
     cursor: pointer;
     font-size: 14px;
     font-weight: 600;
@@ -117,23 +128,24 @@ body {
 }
 
 .btn-primary {
-    background: #3b82f6;
-    color: white;
+    background: rgba(59, 130, 246, 0.12);
+    color: #3b82f6;
+    border-color: #3b82f6;
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
-    background: #2563eb;
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
+    background: rgba(59, 130, 246, 0.2);
 }
 
 .btn-secondary {
-    background: #334155;
-    color: #e2e8f0;
+    background: rgba(59, 130, 246, 0.04);
+    color: #3b82f6;
+    border-color: #3b82f6;
 }
 
 .btn-secondary:hover {
-    background: #475569;
+    background: rgba(59, 130, 246, 0.12);
 }
 
 .last-update {
@@ -527,24 +539,32 @@ select {
 }
 
 button[type="submit"]:hover {
-    transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
 }
 
 /* Database page buttons */
 .controls button {
     padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
+    border-radius: 999px;
+    border: 1.5px solid #3b82f6;
     cursor: pointer;
     font-size: 14px;
     font-weight: 600;
-    background: #334155;
-    color: #e2e8f0;
+    background: rgba(59, 130, 246, 0.08);
+    color: #3b82f6;
     transition: all 0.2s;
 }
 
 .controls button:hover {
-    background: #475569;
-    transform: translateY(-2px);
+    background: rgba(59, 130, 246, 0.16);
+}
+
+/* Realtime toggle button - special style */
+#realtimeBtn {
+    color: #ffffff;
+    border-color: #ffffff;
+}
+
+#realtimeBtn:hover {
+    background: rgba(239, 68, 68, 0.9);
 }
