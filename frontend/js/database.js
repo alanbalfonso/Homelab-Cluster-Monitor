@@ -470,10 +470,11 @@ async function startRealtimeMode() {
         console.error('Error:', error);
     }
 
+    const intervalSeconds = Math.round(realtimeDelay / 1000);
     document.getElementById('results').innerHTML = `
         <div style="background: #166534; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px; border: 1px solid #22c55e;">
             <h3 style="color: #86efac; margin-bottom: 10px;">Modo Tiempo Real Activado</h3>
-            <p style="color: #e2e8f0; font-size: 14px;">Las métricas se actualizarán automáticamente según la frecuencia seleccionada</p>
+            <p style="color: #e2e8f0; font-size: 14px;">Las métricas se actualizarán automáticamente cada <strong>${intervalSeconds}s</strong></p>
             <p style="color: #94a3b8; font-size: 12px; margin-top: 8px;">Total de métricas: <strong id="totalCount">${lastMetricCount}</strong></p>
         </div>
         <div id="realtimeMetrics"></div>
