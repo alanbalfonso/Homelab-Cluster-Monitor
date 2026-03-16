@@ -2,6 +2,7 @@
 const BACKEND_URL = 'http://localhost:3000';
 let autoRefreshInterval = null;
 let autoRefreshDelay = 5000; // ms
+let simulationIntervalMs = null; // Intervalo global de simulación (desde backend)
 
 // Estado global
 let currentData = {
@@ -105,6 +106,23 @@ async function fetchSummary() {
 }
 
 /**
+ * Obtener intervalo global de simulación desde backend
+ */
+async function fetchSimulationInterval() {
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/settings/metrics-interval`);
+        if (!response.ok) return;
+        const data = await response.json();
+        if (data.success && data.metrics_interval_ms) {
+            simulationIntervalMs = parseInt(data.metrics_interval_ms, 10);
+            updateSimulationIntervalDisplay();
+        }
+    } catch (error) {
+        console.warn('No se pudo obtener el intervalo de simulación global:', error.message);
+    }
+}
+
+/**
  * Actualizar todos los datos
  */
 async function refreshData() {
@@ -112,7 +130,8 @@ async function refreshData() {
     await Promise.all([
         fetchStats(),
         fetchLatestMetrics(),
-        fetchSummary()
+        fetchSummary(),
+        fetchSimulationInterval()
     ]);
     updateLastUpdateTime();
 }
@@ -357,6 +376,16 @@ function changeAutoRefreshInterval(value) {
 function updateLastUpdateTime() {
     const now = new Date();
     document.getElementById('lastUpdate').textContent = now.toLocaleTimeString();
+}
+
+/**
+ * Actualizar indicador de intervalo de simulación global
+ */
+function updateSimulationIntervalDisplay() {
+    const el = document.getElementById('simulationInterval');
+    if (!el || !simulationIntervalMs) return;
+    const seconds = Math.round(simulationIntervalMs / 1000);
+    el.textContent = `${seconds}s`;
 }
 
 /**
