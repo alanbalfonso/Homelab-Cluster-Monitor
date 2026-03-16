@@ -5,18 +5,37 @@
 
 // State
 let realtimeInterval = null;
-let realtimeDelay = 5000; // ms
+let realtimeDelay = 5000; // ms (se sincroniza con backend)
 let lastMetricCount = 0;
 let lastSeenMetricTimestamp = null; // Para resaltar métricas nuevas
 
 // ==================== INITIALIZATION ====================
 
 document.addEventListener('DOMContentLoaded', () => {
-    initializeEventListeners();
-    refreshStats();
-    setInterval(refreshStats, 10000); // Auto-refresh stats every 10s
-    startRealtimeMode(); // Activar siempre la vista en tiempo real
+    (async () => {
+        initializeEventListeners();
+        await syncMetricsIntervalFromBackend();
+        refreshStats();
+        setInterval(refreshStats, 10000); // Auto-refresh stats every 10s
+        startRealtimeMode(); // Activar siempre la vista en tiempo real
+    })();
 });
+
+async function syncMetricsIntervalFromBackend() {
+    try {
+        const data = await api.settings.getInterval();
+        if (data.success && data.metrics_interval_ms) {
+            realtimeDelay = parseInt(data.metrics_interval_ms, 10) || realtimeDelay;
+            const select = document.getElementById('realtimeIntervalSelect');
+            if (select) {
+                // Si no existe opción exacta, no pasa nada; se mantiene la seleccionada
+                select.value = String(realtimeDelay);
+            }
+        }
+    } catch (error) {
+        console.warn('No se pudo sincronizar intervalo de métricas desde backend:', error.message);
+    }
+}
 
 function initializeEventListeners() {
     // Node management forms
@@ -473,6 +492,11 @@ function changeRealtimeInterval(value) {
         clearInterval(realtimeInterval);
         realtimeInterval = setInterval(loadRealtimeMetrics, realtimeDelay);
     }
+
+    // Actualizar también el intervalo global de generación de métricas en el backend
+    api.settings.setInterval(realtimeDelay).catch(err => {
+        console.error('Error actualizando metrics_interval_ms en backend:', err.message);
+    });
 }
 
 async function loadRealtimeMetrics() {

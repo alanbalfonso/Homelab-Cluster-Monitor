@@ -3,6 +3,7 @@ const cors = require('cors');
 const nodesRoutes = require('./routes/nodes');
 const metricsRoutes = require('./routes/metrics');
 const statsRoutes = require('./routes/stats');
+const settingsRoutes = require('./routes/settings');
 const { healthCheck } = require('./controllers/statsController');
 
 const app = express();
@@ -21,6 +22,7 @@ app.use((req, res, next) => {
 app.use('/api/nodes', nodesRoutes);
 app.use('/api/metrics', metricsRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/settings', settingsRoutes);
 app.get('/health', healthCheck);
 
 // Root endpoint
@@ -33,6 +35,7 @@ app.get('/', (req, res) => {
             nodes: '/api/nodes',
             metrics: '/api/metrics',
             stats: '/api/stats',
+            settings: '/api/settings',
             health: '/health'
         }
     });

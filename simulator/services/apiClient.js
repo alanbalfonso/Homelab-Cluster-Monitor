@@ -43,6 +43,18 @@ class APIClient {
     }
 
     /**
+     * Obtener intervalo global de generación de métricas desde el backend
+     */
+    async getMetricsInterval() {
+        try {
+            const response = await this.client.get('/api/settings/metrics-interval');
+            return response.data.metrics_interval_ms;
+        } catch (error) {
+            throw new Error(`No se pudo obtener metrics_interval_ms: ${error.message}`);
+        }
+    }
+
+    /**
      * Esperar a que el backend esté disponible
      */
     async waitForBackend(maxAttempts = 20, delayMs = 3000) {

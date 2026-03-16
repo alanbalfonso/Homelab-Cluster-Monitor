@@ -37,11 +37,11 @@
             <button onclick="loadAllMetrics()">Todas las Métricas (100)</button>
             <button onclick="loadSummary()">Resumen 24h</button>
             <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 12px; color: #94a3b8;">Refresco métricas:</span>
+                <span style="font-size: 12px; color: #94a3b8;">Refresco métricas (simulación):</span>
                 <select id="realtimeIntervalSelect" onchange="changeRealtimeInterval(this.value)" style="padding: 6px 10px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #e2e8f0;">
-                    <option value="2000">Cada 2s</option>
                     <option value="5000" selected>Cada 5s</option>
                     <option value="10000">Cada 10s</option>
+                    <option value="30000">Cada 30s</option>
                 </select>
             </div>
         </div>

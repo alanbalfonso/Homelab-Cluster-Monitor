@@ -5,7 +5,7 @@ const APIClient = require('./services/apiClient');
 // Configuración desde variables de entorno
 const BACKEND_URL = process.env.BACKEND_URL || 'http://backend:3000';
 const HOST_ID = process.env.HOST_ID || 'mini-pc-01';
-const INTERVAL = parseInt(process.env.INTERVAL) || 30000;
+const INTERVAL = parseInt(process.env.INTERVAL) || 5000;
 
 /**
  * Clase principal del simulador
@@ -17,7 +17,7 @@ class Simulator {
         this.profile = getProfile(hostId);
         this.apiClient = new APIClient(backendUrl);
         this.metricsGenerator = null;
-        this.intervalId = null;
+        this.timeoutId = null;
         this.iteration = 0;
     }
 
@@ -39,7 +39,7 @@ Host ID: ${this.hostId}
 Nombre: ${this.profile.name}
 Perfil: ${this.profile.cpu_cores} cores, ${this.profile.ram_total}GB RAM, ${this.profile.disk_total}GB Disco
 Patrón: ${this.profile.workloadPattern}
-Intervalo: ${this.interval}ms
+Intervalo inicial (ms): ${this.interval} (controlado por backend)
 Backend: ${this.apiClient.baseURL}
         `);
 
@@ -58,6 +58,8 @@ Backend: ${this.apiClient.baseURL}
     async sendMetric() {
         try {
             this.iteration++;
+            // Asegurar que el generador usa el intervalo actual
+            this.metricsGenerator.interval = this.interval;
             const metrics = this.metricsGenerator.generate(this.hostId, this.iteration);
             await this.apiClient.sendMetrics(metrics);
             
@@ -73,27 +75,48 @@ Backend: ${this.apiClient.baseURL}
     }
 
     /**
+     * Obtener intervalo actual desde backend (con fallback al valor local)
+     */
+    async getCurrentIntervalMs() {
+        try {
+            const backendInterval = await this.apiClient.getMetricsInterval();
+            const v = parseInt(backendInterval, 10);
+            if (!isNaN(v) && v > 0) {
+                this.interval = v;
+            }
+        } catch (error) {
+            // Si no se puede leer del backend, mantener el valor actual
+            console.warn(`[${this.hostId}] No se pudo leer metrics_interval_ms, usando ${this.interval} ms. Detalle: ${error.message}`);
+        }
+        return this.interval;
+    }
+
+    /**
+     * Bucle de envío con intervalo dinámico
+     */
+    async loop() {
+        await this.sendMetric();
+        const delay = await this.getCurrentIntervalMs();
+        console.log(`[${this.hostId}] Próximo envío en ${delay / 1000}s`);
+        this.timeoutId = setTimeout(() => this.loop(), delay);
+    }
+
+    /**
      * Iniciar bucle de envío
      */
-    start() {
-        console.log(`Iniciando envío de métricas cada ${this.interval / 1000}s...\n`);
-        
-        // Enviar primera métrica inmediatamente
-        this.sendMetric();
-        
-        // Configurar intervalo
-        this.intervalId = setInterval(() => {
-            this.sendMetric();
-        }, this.interval);
+    async start() {
+        const initialDelay = await this.getCurrentIntervalMs();
+        console.log(`Iniciando envío de métricas cada ${initialDelay / 1000}s (controlado por backend)...\n`);
+        this.timeoutId = setTimeout(() => this.loop(), 0);
     }
 
     /**
      * Detener simulador
      */
     stop() {
-        if (this.intervalId) {
-            clearInterval(this.intervalId);
-            this.intervalId = null;
+        if (this.timeoutId) {
+            clearTimeout(this.timeoutId);
+            this.timeoutId = null;
         }
         console.log(`\n[${this.hostId}] Simulador detenido`);
     }
@@ -115,7 +138,7 @@ async function main() {
     
     try {
         await simulator.initialize();
-        simulator.start();
+        await simulator.start();
     } catch (error) {
         console.error(`Error fatal: ${error.message}`);
         process.exit(1);

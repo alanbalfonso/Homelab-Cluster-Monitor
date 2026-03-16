@@ -67,6 +67,11 @@ const api = {
         insertManual: (data) => api.post('/metrics/manual', data)
     },
     
+    settings: {
+        getInterval: () => api.get('/settings/metrics-interval'),
+        setInterval: (ms) => api.post('/settings/metrics-interval', { metrics_interval_ms: ms })
+    },
+
     query: {
         execute: (query) => api.post('/query', { query })
     }
