@@ -1,7 +1,7 @@
 // Configuración
 const BACKEND_URL = 'http://localhost:3000';
 let autoRefreshInterval = null;
-let autoRefreshEnabled = false;
+let autoRefreshDelay = 5000; // ms
 
 // Estado global
 let currentData = {
@@ -26,6 +26,7 @@ function formatNumber(value, decimals = 1) {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Homelab Cluster Monitor iniciado');
     refreshData();
+    startAutoRefresh();
 });
 
 /**
@@ -332,17 +333,21 @@ function closeModal() {
 /**
  * Toggle auto-refresh
  */
-function toggleAutoRefresh() {
-    autoRefreshEnabled = !autoRefreshEnabled;
-    
-    if (autoRefreshEnabled) {
-        autoRefreshInterval = setInterval(refreshData, 5000); // Cada 5 segundos
-        document.getElementById('autoRefreshStatus').textContent = 'ON';
-        document.getElementById('autoRefreshIcon').textContent = 'pause';
-    } else {
+function startAutoRefresh() {
+    if (autoRefreshInterval) {
         clearInterval(autoRefreshInterval);
-        document.getElementById('autoRefreshStatus').textContent = 'OFF';
-        document.getElementById('autoRefreshIcon').textContent = 'play_arrow';
+    }
+    autoRefreshInterval = setInterval(refreshData, autoRefreshDelay);
+}
+
+function changeAutoRefreshInterval(value) {
+    const newDelay = parseInt(value, 10);
+    if (!newDelay || newDelay <= 0) return;
+    autoRefreshDelay = newDelay;
+
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = setInterval(refreshData, autoRefreshDelay);
     }
 }
 

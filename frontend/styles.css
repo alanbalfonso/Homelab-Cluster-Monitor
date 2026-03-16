@@ -531,6 +531,20 @@ pre {
     }
 }
 
+/* Highlight new metrics rows */
+tr.new-metric {
+    animation: highlightNewMetric 1.2s ease-out forwards;
+}
+
+@keyframes highlightNewMetric {
+    from {
+        background-color: #14532d;
+    }
+    to {
+        background-color: transparent;
+    }
+}
+
 /* Form inputs for database page */
 input[type="number"],
 input[type="text"],

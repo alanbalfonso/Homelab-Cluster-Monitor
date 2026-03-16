@@ -4,9 +4,10 @@
  */
 
 // State
-let realtimeMode = false;
 let realtimeInterval = null;
+let realtimeDelay = 5000; // ms
 let lastMetricCount = 0;
+let lastSeenMetricTimestamp = null; // Para resaltar métricas nuevas
 
 // ==================== INITIALIZATION ====================
 
@@ -14,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeEventListeners();
     refreshStats();
     setInterval(refreshStats, 10000); // Auto-refresh stats every 10s
+    startRealtimeMode(); // Activar siempre la vista en tiempo real
 });
 
 function initializeEventListeners() {
@@ -338,7 +340,31 @@ async function loadAllMetrics() {
         // Flatten and sort
         const allMetrics = results.flatMap(r => r.data);
         allMetrics.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-        
+
+        let maxTimestampMs = lastSeenMetricTimestamp || 0;
+        const rowsHtml = allMetrics.slice(0, 100).map(m => {
+            const tsMs = new Date(m.timestamp).getTime();
+            const isNew = !lastSeenMetricTimestamp || (tsMs && tsMs > lastSeenMetricTimestamp);
+            if (tsMs && tsMs > maxTimestampMs) {
+                maxTimestampMs = tsMs;
+            }
+
+            const rowClass = isNew ? 'new-metric' : '';
+
+            return `
+                        <tr class="${rowClass}">
+                            <td><strong>${m.host_id}</strong></td>
+                            <td>${formatNumber(m.cpu_usage)}</td>
+                            <td>${formatNumber(m.ram_used_gb)}</td>
+                            <td>${formatNumber(m.temperature)}</td>
+                            <td>${formatNumber(m.disk_usage_percent)}</td>
+                            <td>${formatTimestamp(m.timestamp)}</td>
+                        </tr>
+                    `;
+        }).join('');
+
+        lastSeenMetricTimestamp = maxTimestampMs || lastSeenMetricTimestamp;
+
         const html = `
             <table>
                 <thead>
@@ -352,16 +378,7 @@ async function loadAllMetrics() {
                     </tr>
                 </thead>
                 <tbody>
-                    ${allMetrics.slice(0, 100).map(m => `
-                        <tr>
-                            <td><strong>${m.host_id}</strong></td>
-                            <td>${formatNumber(m.cpu_usage)}</td>
-                            <td>${formatNumber(m.ram_used_gb)}</td>
-                            <td>${formatNumber(m.temperature)}</td>
-                            <td>${formatNumber(m.disk_usage_percent)}</td>
-                            <td>${formatTimestamp(m.timestamp)}</td>
-                        </tr>
-                    `).join('')}
+                    ${rowsHtml}
                 </tbody>
             </table>
         `;
@@ -416,23 +433,14 @@ async function loadSummary() {
 
 // ==================== REALTIME MODE ====================
 
-function toggleRealtimeView() {
-    realtimeMode = !realtimeMode;
-    const btn = document.getElementById('realtimeBtn');
-    
-    if (realtimeMode) {
-        btn.textContent = 'Tiempo Real: ON';
-        btn.style.background = '#22c55e';
-        startRealtimeMode();
-    } else {
-        btn.textContent = 'Tiempo Real: OFF';
-        btn.style.background = '#ef4444';
-        stopRealtimeMode();
-    }
-}
-
 async function startRealtimeMode() {
     document.getElementById('sectionTitle').textContent = 'Vista en Tiempo Real - Nuevas Métricas';
+
+    // Reiniciar intervalo si ya estaba activo
+    if (realtimeInterval) {
+        clearInterval(realtimeInterval);
+        realtimeInterval = null;
+    }
     
     try {
         const data = await api.stats.get();
@@ -446,23 +454,25 @@ async function startRealtimeMode() {
     document.getElementById('results').innerHTML = `
         <div style="background: #166534; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px; border: 1px solid #22c55e;">
             <h3 style="color: #86efac; margin-bottom: 10px;">Modo Tiempo Real Activado</h3>
-            <p style="color: #e2e8f0; font-size: 14px;">Las métricas se actualizarán automáticamente cada 5 segundos</p>
+            <p style="color: #e2e8f0; font-size: 14px;">Las métricas se actualizarán automáticamente según la frecuencia seleccionada</p>
             <p style="color: #94a3b8; font-size: 12px; margin-top: 8px;">Total de métricas: <strong id="totalCount">${lastMetricCount}</strong></p>
         </div>
         <div id="realtimeMetrics"></div>
     `;
     
     loadRealtimeMetrics();
-    realtimeInterval = setInterval(loadRealtimeMetrics, 5000);
+    realtimeInterval = setInterval(loadRealtimeMetrics, realtimeDelay);
 }
 
-function stopRealtimeMode() {
+function changeRealtimeInterval(value) {
+    const newDelay = parseInt(value, 10);
+    if (!newDelay || newDelay <= 0) return;
+    realtimeDelay = newDelay;
+
     if (realtimeInterval) {
         clearInterval(realtimeInterval);
-        realtimeInterval = null;
+        realtimeInterval = setInterval(loadRealtimeMetrics, realtimeDelay);
     }
-    document.getElementById('sectionTitle').textContent = 'Selecciona una opción arriba';
-    document.getElementById('results').innerHTML = '<div class="loading">Modo tiempo real desactivado. Selecciona un botón para ver los datos.</div>';
 }
 
 async function loadRealtimeMetrics() {
@@ -470,6 +480,7 @@ async function loadRealtimeMetrics() {
         const data = await api.metrics.getLatest();
         
         if (data.success) {
+            let maxTimestampMs = lastSeenMetricTimestamp || 0;
             const html = `
                 <table>
                     <thead>
@@ -482,19 +493,28 @@ async function loadRealtimeMetrics() {
                         </tr>
                     </thead>
                     <tbody>
-                        ${data.data.map(m => `
-                            <tr>
+                        ${data.data.map(m => {
+                            const tsMs = new Date(m.timestamp).getTime();
+                            const isNew = !lastSeenMetricTimestamp || (tsMs && tsMs > lastSeenMetricTimestamp);
+                            if (tsMs && tsMs > maxTimestampMs) {
+                                maxTimestampMs = tsMs;
+                            }
+                            const rowClass = isNew ? 'new-metric' : '';
+                            return `
+                            <tr class="${rowClass}">
                                 <td><strong>${m.host_id}</strong></td>
                                 <td>${formatNumber(m.cpu_usage)}</td>
                                 <td>${formatNumber(m.ram_used_gb)}</td>
                                 <td>${formatNumber(m.temperature)}</td>
                                 <td>${formatTimestamp(m.timestamp)}</td>
-                            </tr>
-                        `).join('')}
+                            </tr>`;
+                        }).join('')}
                     </tbody>
                 </table>
             `;
             document.getElementById('realtimeMetrics').innerHTML = html;
+
+            lastSeenMetricTimestamp = maxTimestampMs || lastSeenMetricTimestamp;
         }
     } catch (error) {
         console.error('Error loading realtime metrics:', error);
