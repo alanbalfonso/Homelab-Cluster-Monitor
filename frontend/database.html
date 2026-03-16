@@ -35,7 +35,6 @@
             <button onclick="loadLatestMetrics()">Últimas Métricas</button>
             <button onclick="loadAllMetrics()">Todas las Métricas (100)</button>
             <button onclick="loadSummary()">Resumen 24h</button>
-            <button onclick="executeCustomQuery()">Consulta SQL</button>
             <button onclick="refreshStats()">🔄 Actualizar</button>
             <button onclick="toggleRealtimeView()" id="realtimeBtn" style="background: #ef4444;">
                 Tiempo Real: OFF
@@ -129,24 +128,6 @@
         </div>
 
         <div class="section">
-            <h2>Consultas SQL Útiles</h2>
-            <pre>-- Ver todos los nodos
-SELECT * FROM cluster_nodes;
-
--- Contar métricas totales
-SELECT COUNT(*) FROM metrics;
-
--- Últimas 20 métricas
-SELECT * FROM metrics ORDER BY timestamp DESC LIMIT 20;
-
--- Promedio de CPU por nodo
-SELECT host_id, AVG(cpu_usage) as avg_cpu 
-FROM metrics 
-GROUP BY host_id;
-
--- Métricas de las últimas 24 horas
-SELECT * FROM metrics 
-WHERE timestamp > NOW() - INTERVAL '24 hours';</pre>
         </div>
     </div>
 

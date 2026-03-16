@@ -40,50 +40,6 @@ const getStats = async (req, res) => {
 };
 
 /**
- * Ejecutar consulta SQL personalizada (solo SELECT)
- */
-const executeQuery = async (req, res) => {
-    const { query } = req.body;
-
-    if (!query) {
-        return res.status(400).json({ error: 'Query es requerida' });
-    }
-
-    // Validar que solo sea SELECT
-    const trimmedQuery = query.trim().toUpperCase();
-    if (!trimmedQuery.startsWith('SELECT')) {
-        return res.status(403).json({ 
-            success: false,
-            error: 'Solo se permiten consultas SELECT por seguridad' 
-        });
-    }
-
-    // Validar keywords peligrosos
-    const dangerousKeywords = ['DROP', 'DELETE', 'INSERT', 'UPDATE', 'ALTER', 'CREATE', 'TRUNCATE', 'GRANT', 'REVOKE'];
-    if (dangerousKeywords.some(keyword => trimmedQuery.includes(keyword))) {
-        return res.status(403).json({ 
-            success: false,
-            error: 'La consulta contiene comandos no permitidos' 
-        });
-    }
-
-    try {
-        const result = await pool.query(query);
-        res.json({
-            success: true,
-            rowCount: result.rowCount,
-            data: result.rows
-        });
-    } catch (error) {
-        console.error('Error ejecutando consulta:', error);
-        res.status(400).json({ 
-            success: false, 
-            error: error.message 
-        });
-    }
-};
-
-/**
  * Health check
  */
 const healthCheck = async (req, res) => {
@@ -106,6 +62,5 @@ const healthCheck = async (req, res) => {
 
 module.exports = {
     getStats,
-    executeQuery,
     healthCheck
 };

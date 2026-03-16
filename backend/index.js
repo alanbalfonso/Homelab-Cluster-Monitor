@@ -21,7 +21,6 @@ app.use((req, res, next) => {
 app.use('/api/nodes', nodesRoutes);
 app.use('/api/metrics', metricsRoutes);
 app.use('/api/stats', statsRoutes);
-app.post('/api/query', statsRoutes); // Mantener compatibilidad
 app.get('/health', healthCheck);
 
 // Root endpoint
