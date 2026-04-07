@@ -3,7 +3,6 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
 yarn.lock
 
 # Variables de entorno y configuración sensible
@@ -56,8 +55,6 @@ coverage/
 .nyc_output/
 .coverage/
 *.lcov
-performance/k6-results.json
-performance/results/
 
 # Docker
 docker-compose.override.yml
