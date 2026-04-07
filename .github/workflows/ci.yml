@@ -18,6 +18,9 @@ jobs:
         with:
           node-version: "18"
           cache: "npm"
+          cache-dependency-path: |
+            backend/package-lock.json
+            simulator/package-lock.json
 
       - name: Install + Lint backend
         working-directory: backend
