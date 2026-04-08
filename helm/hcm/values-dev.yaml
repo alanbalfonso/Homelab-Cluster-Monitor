@@ -1,6 +1,6 @@
 namespace:
   create: true
-  name: hcm
+  name: homelab-cluster-monitor
 
 backend:
   replicas: 1
