@@ -8,9 +8,8 @@ backend:
 frontend:
   replicas: 2
   service:
-    type: NodePort
+    type: LoadBalancer
     port: 80
-    nodePort: 30080
 
 postgres:
   replicas: 1
