@@ -10,12 +10,13 @@ Sistema completo de monitoreo para cluster de mini PCs con arquitectura modular,
 - **API REST modular** con Express.js y controladores separados
 - **Frontend con JavaScript modular** separado del HTML
 - **Docker Compose** para orquestación completa de 8 contenedores
+- **CI** con GitHub Actions (lint + build)
+- **CD manual** con GitHub Actions (Docker Hub + EKS)
+- **Kubernetes** con manifiestos base (Minikube/EKS)
+- **Helm** para despliegue parametrizado
 - **Métricas completas**: CPU, RAM, Disco, Red, Temperatura, Uptime
 - **Visualización de base de datos** con interfaz web dedicada
 - **Gestión CRUD de nodos** con soft delete y restauración
-- **Modo tiempo real** para monitoreo continuo
-- **Consultas SQL personalizadas** con protección contra inyección
-- **Tests de carga con K6** para evaluación de rendimiento
 ## Arquitectura
 
 El sistema utiliza una arquitectura modular distribuida en contenedores Docker:
@@ -74,7 +75,7 @@ El sistema utiliza una arquitectura modular distribuida en contenedores Docker:
 ### 1. Construir y levantar todos los servicios
 
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
 ### 2. Acceder al sistema
@@ -107,29 +108,17 @@ docker-compose up --build
 - Historial de métricas (últimas 100 entradas)
 - Resumen agregado de 24 horas por nodo
 
-**Modo Tiempo Real:**
-- Actualización automática cada 5 segundos
-- Contador de métricas totales con detección de cambios
-- Resaltado visual de nuevas entradas
-- Animaciones de transición
-
-**Consultas SQL:**
-- Ejecutar consultas SELECT personalizadas
-- Protección contra inyección SQL
-- Visualización de resultados en tabla HTML
-- Manejo de valores NULL y tipos de datos especiales
-
 ### 4. Ver logs
 
 ```bash
 # Todos los servicios
-docker-compose logs -f
+docker compose logs -f
 
 # Solo simuladores
-docker-compose logs -f mini-pc-01 mini-pc-02 mini-pc-03
+docker compose logs -f mini-pc-01 mini-pc-02 mini-pc-03
 
 # Solo backend
-docker-compose logs -f backend
+docker compose logs -f backend
 ```
 
 ## Mini PCs Simulados
@@ -161,7 +150,6 @@ docker-compose logs -f backend
 
 ### Estadísticas
 - `GET /api/stats` - Estadísticas generales del cluster
-- `POST /api/query` - Ejecutar consulta SQL (solo SELECT)
 - `GET /api/health` - Health check del sistema
 
 ### Ejemplo de uso
@@ -172,22 +160,6 @@ curl http://localhost:3000/api/metrics/latest
 
 # Obtener historial de un nodo
 curl http://localhost:3000/api/metrics/history/mini-pc-01?limit=50
-
-# Enviar métricas manualmente
-curl -X POST http://localhost:3000/api/metrics \
-  -H "Content-Type: application/json" \
-  -d '{
-    "host_id": "test-pc",
-    "cpu_usage": 45.2,
-    "ram_used_gb": 8.5,
-    "ram_usage_percent": 53.1,
-    "temperature": 52.3,
-    "disk_used_gb": 128.5,
-    "disk_usage_percent": 25.1,
-    "network_in_mbps": 12.5,
-    "network_out_mbps": 3.2,
-    "uptime_hours": 48
-  }'
 ```
 
 ## Base de Datos
@@ -228,7 +200,7 @@ SELECT COUNT(*) FROM metrics;
 **Capa de Controladores:**
 - `controllers/nodesController.js`: Lógica de negocio para CRUD de nodos
 - `controllers/metricsController.js`: Operaciones de métricas con validaciones
-- `controllers/statsController.js`: Estadísticas y queries con protección SQL
+- `controllers/statsController.js`: Estadísticas del cluster
 
 **Capa de Rutas:**
 - `routes/nodes.js`: Definición de endpoints de nodos
@@ -272,13 +244,13 @@ SELECT COUNT(*) FROM metrics;
 
 ```bash
 # Detener todos los servicios
-docker-compose down
+docker compose down
 
 # Detener y eliminar volúmenes (limpia la BD)
-docker-compose down -v
+docker compose down -v
 
 # Reconstruir un servicio específico
-docker-compose up --build backend
+docker compose up --build backend
 
 # Ver estadísticas de recursos
 docker stats
@@ -287,7 +259,42 @@ docker stats
 docker exec -it hcm-backend sh
 
 # Reiniciar un simulador
-docker-compose restart mini-pc-01
+docker compose restart mini-pc-01
+```
+
+## CI/CD
+
+El proyecto incluye un pipeline de Integración Continua (CI) y un flujo de Despliegue Continuo (CD) manual.
+
+**CI (GitHub Actions)**
+- Ejecuta lint en backend y simulador.
+- Valida Docker Compose y construye las imagenes.
+
+**CD (GitHub Actions, manual)**
+- Construye y publica imagenes en Docker Hub.
+- Despliega con Helm en EKS.
+- Se ejecuta solo bajo demanda (workflow_dispatch).
+
+### Secrets requeridos (GitHub)
+
+- `DOCKERHUB_TOKEN`
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+
+## Kubernetes
+
+Manifiestos base en `k8s/` para despliegue en Minikube o EKS.
+
+```bash
+kubectl apply -f k8s/
+```
+
+## Helm
+
+Chart principal en `helm/hcm/` con valores para dev y prod.
+
+```bash
+helm install hcm helm/hcm -f helm/hcm/values-dev.yaml
 ```
 
 ## Estructura del Proyecto
@@ -295,6 +302,9 @@ docker-compose restart mini-pc-01
 ```
 HCM/
 ├── docker-compose.yml              # Orquestación de servicios
+├── k8s/                             # Manifiestos Kubernetes
+├── helm/                            # Chart Helm
+├── .github/workflows/               # CI/CD con GitHub Actions
 ├── README.md                       # Documentación principal
 ├── ARCHITECTURE.md                 # Guía de arquitectura detallada
 ├── REFACTORING_SUMMARY.md          # Resumen de refactorización
@@ -340,10 +350,6 @@ HCM/
 │   ├── package.json
 │   └── Dockerfile
 │
-├── performance/
-│   ├── k6-load-test.js             # Script de pruebas de carga
-│   └── TESTING_GUIDE.md            # Guía de testing
-│
 └── infraestructura/
     ├── docker-compose.yml
     ├── main.tf                     # Configuración Terraform
@@ -371,82 +377,26 @@ HCM/
 
 ### El frontend no muestra datos
 
-1. Verifica que el backend esté corriendo: `docker-compose logs backend`
+1. Verifica que el backend esté corriendo: `docker compose logs backend`
 2. Verifica conectividad: `curl http://localhost:3000/health`
 3. Revisa la consola del navegador (F12)
 
 ### La base de datos no inicia
 
-1. Verifica logs: `docker-compose logs postgres`
-2. Elimina el volumen y reinicia: `docker-compose down -v && docker-compose up`
+1. Verifica logs: `docker compose logs postgres`
+2. Elimina el volumen y reinicia: `docker compose down -v && docker compose up`
 
 ### Los simuladores no envían datos
 
 1. Verifica que el backend esté listo antes de los simuladores
-2. Revisa logs: `docker-compose logs mini-pc-01`
+2. Revisa logs: `docker compose logs mini-pc-01`
 3. Verifica red: `docker network inspect hcm_hcm-network`
-
-## Pruebas de Carga con K6
-
-El proyecto incluye pruebas de carga para evaluar el rendimiento del backend API.
-
-### Instalación de K6
-
-```powershell
-# Con Chocolatey (Windows)
-choco install k6 -y
-
-# Verificar instalación
-k6 version
-```
-
-### Ejecutar Pruebas
-
-```powershell
-# 1. Asegúrate de que los servicios estén corriendo
-docker-compose up -d
-
-# 2. Ejecutar pruebas de carga
-k6 run performance/k6-load-test.js
-```
-
-### Métricas Medidas
-
-- **Tiempos de respuesta:** Promedio, P95, P99
-- **Tasa de éxito/error** de requests
-- **Throughput:** Requests por segundo
-- **Carga progresiva:** 10→50→100 usuarios virtuales
-
-### Perfil de Carga
-
-| Fase | Duración | Usuarios | Descripción |
-|------|----------|----------|-------------|
-| Ramp-up | 30s | 0→10 | Calentamiento |
-| Sostenido | 1m | 10 | Carga ligera |
-| Incremento | 30s | 10→20 | Aumento gradual |
-| Sostenido | 1m | 20 | Carga media |
-| Pico | 30s | 20→50 | Máxima carga |
-| Sostenido | 1m | 50 | Estrés sostenido |
-| Ramp-down | 30s | 50→0 | Enfriamiento |
-
-**Duración total:** ~5 minutos
-
-### Resultados
-
-Los resultados se guardan en:
-- **Consola:** Reporte detallado en tiempo real
-- **JSON:** `performance/k6-results.json`
-
-### Documentación Completa
-
- **[Guía de Pruebas K6](performance/TESTING_GUIDE.md)**
 
 ## Documentación Adicional
 
 - **ARCHITECTURE.md**: Guía completa de la arquitectura del sistema
 - **REFACTORING_SUMMARY.md**: Resumen del proceso de refactorización
 - **DATABASE_GUIDE.md**: Esquema de base de datos y consultas útiles
-- **performance/TESTING_GUIDE.md**: Guía de pruebas de rendimiento con K6
 
 ## Desarrollo y Mejoras Futuras
 
