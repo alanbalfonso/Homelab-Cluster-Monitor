@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hcm-config
+  namespace: hcm
+data:
+  DB_HOST: postgres
+  DB_PORT: "5432"
+  DB_NAME: homelab_monitor
+  DB_USER: admin
+  POSTGRES_DB: homelab_monitor
+  POSTGRES_USER: admin
+  PORT: "3000"
+  NODE_ENV: development
+  BACKEND_URL: http://backend:3000
+  METRICS_INTERVAL: "30000"

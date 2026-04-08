@@ -1,0 +1,174 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mini-pc-01
+  namespace: hcm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hcm-simulator
+      host-id: mini-pc-01
+  template:
+    metadata:
+      labels:
+        app: hcm-simulator
+        host-id: mini-pc-01
+    spec:
+      containers:
+        - name: simulator
+          image: hcm-simulator:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: BACKEND_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: hcm-config
+                  key: BACKEND_URL
+            - name: HOST_ID
+              value: mini-pc-01
+            - name: INTERVAL
+              valueFrom:
+                configMapKeyRef:
+                  name: hcm-config
+                  key: METRICS_INTERVAL
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mini-pc-02
+  namespace: hcm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hcm-simulator
+      host-id: mini-pc-02
+  template:
+    metadata:
+      labels:
+        app: hcm-simulator
+        host-id: mini-pc-02
+    spec:
+      containers:
+        - name: simulator
+          image: hcm-simulator:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: BACKEND_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: hcm-config
+                  key: BACKEND_URL
+            - name: HOST_ID
+              value: mini-pc-02
+            - name: INTERVAL
+              valueFrom:
+                configMapKeyRef:
+                  name: hcm-config
+                  key: METRICS_INTERVAL
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mini-pc-03
+  namespace: hcm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hcm-simulator
+      host-id: mini-pc-03
+  template:
+    metadata:
+      labels:
+        app: hcm-simulator
+        host-id: mini-pc-03
+    spec:
+      containers:
+        - name: simulator
+          image: hcm-simulator:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: BACKEND_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: hcm-config
+                  key: BACKEND_URL
+            - name: HOST_ID
+              value: mini-pc-03
+            - name: INTERVAL
+              valueFrom:
+                configMapKeyRef:
+                  name: hcm-config
+                  key: METRICS_INTERVAL
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mini-pc-04
+  namespace: hcm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hcm-simulator
+      host-id: mini-pc-04
+  template:
+    metadata:
+      labels:
+        app: hcm-simulator
+        host-id: mini-pc-04
+    spec:
+      containers:
+        - name: simulator
+          image: hcm-simulator:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: BACKEND_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: hcm-config
+                  key: BACKEND_URL
+            - name: HOST_ID
+              value: mini-pc-04
+            - name: INTERVAL
+              valueFrom:
+                configMapKeyRef:
+                  name: hcm-config
+                  key: METRICS_INTERVAL
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mini-pc-05
+  namespace: hcm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hcm-simulator
+      host-id: mini-pc-05
+  template:
+    metadata:
+      labels:
+        app: hcm-simulator
+        host-id: mini-pc-05
+    spec:
+      containers:
+        - name: simulator
+          image: hcm-simulator:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: BACKEND_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: hcm-config
+                  key: BACKEND_URL
+            - name: HOST_ID
+              value: mini-pc-05
+            - name: INTERVAL
+              valueFrom:
+                configMapKeyRef:
+                  name: hcm-config
+                  key: METRICS_INTERVAL
