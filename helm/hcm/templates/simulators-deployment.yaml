@@ -1,0 +1,37 @@
+{{- range .Values.simulators }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .hostId }}
+  namespace: {{ include "hcm.namespace" $ }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "hcm.fullname" $ }}-simulator
+      host-id: {{ .hostId }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "hcm.fullname" $ }}-simulator
+        host-id: {{ .hostId }}
+    spec:
+      containers:
+        - name: simulator
+          image: "{{ $.Values.images.simulator.repository }}:{{ $.Values.images.simulator.tag }}"
+          imagePullPolicy: {{ $.Values.images.simulator.pullPolicy }}
+          env:
+            - name: BACKEND_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "hcm.fullname" $ }}-config
+                  key: BACKEND_URL
+            - name: HOST_ID
+              value: {{ .hostId | quote }}
+            - name: INTERVAL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "hcm.fullname" $ }}-config
+                  key: METRICS_INTERVAL
+---
+{{- end }}

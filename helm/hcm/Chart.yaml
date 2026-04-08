@@ -1,0 +1,6 @@
+apiVersion: v2
+name: hcm
+description: Homelab Cluster Monitor chart
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

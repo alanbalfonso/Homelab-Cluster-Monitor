@@ -1,0 +1,147 @@
+namespace:
+  create: true
+  name: hcm
+
+images:
+  backend:
+    repository: hcm-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  frontend:
+    repository: hcm-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  simulator:
+    repository: hcm-simulator
+    tag: latest
+    pullPolicy: IfNotPresent
+  postgres:
+    repository: postgres
+    tag: 15-alpine
+    pullPolicy: IfNotPresent
+
+backend:
+  replicas: 1
+  service:
+    port: 3000
+
+frontend:
+  replicas: 1
+  service:
+    type: NodePort
+    port: 80
+    nodePort: 30080
+
+postgres:
+  replicas: 1
+  service:
+    port: 5432
+  persistence:
+    enabled: true
+    size: 1Gi
+
+config:
+  DB_HOST: postgres
+  DB_PORT: "5432"
+  DB_NAME: homelab_monitor
+  DB_USER: admin
+  POSTGRES_DB: homelab_monitor
+  POSTGRES_USER: admin
+  PORT: "3000"
+  NODE_ENV: development
+  BACKEND_URL: http://backend:3000
+  METRICS_INTERVAL: "30000"
+
+secrets:
+  DB_PASSWORD: admin123
+  POSTGRES_PASSWORD: admin123
+
+simulators:
+  - hostId: mini-pc-01
+  - hostId: mini-pc-02
+  - hostId: mini-pc-03
+  - hostId: mini-pc-04
+  - hostId: mini-pc-05
+
+postgresInitSql: |
+  -- Create HCM database schema
+  CREATE TABLE IF NOT EXISTS cluster_nodes (
+      id SERIAL PRIMARY KEY,
+      host_id VARCHAR(50) UNIQUE NOT NULL,
+      hostname VARCHAR(100) NOT NULL,
+      location VARCHAR(100),
+      cpu_cores INTEGER,
+      ram_total_gb INTEGER,
+      disk_total_gb INTEGER,
+      os VARCHAR(50),
+      status VARCHAR(20) DEFAULT 'active',
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      deleted_at TIMESTAMP DEFAULT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS metrics (
+      id SERIAL PRIMARY KEY,
+      host_id VARCHAR(50) NOT NULL,
+      cpu_usage DECIMAL(5,2),
+      ram_used_gb DECIMAL(6,2),
+      ram_usage_percent DECIMAL(5,2),
+      temperature DECIMAL(5,2),
+      disk_used_gb DECIMAL(8,2),
+      disk_usage_percent DECIMAL(5,2),
+      network_in_mbps DECIMAL(8,2),
+      network_out_mbps DECIMAL(8,2),
+      uptime_hours INTEGER,
+      timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (host_id) REFERENCES cluster_nodes(host_id) ON DELETE CASCADE
+  );
+
+  CREATE INDEX idx_metrics_host_timestamp ON metrics(host_id, timestamp DESC);
+  CREATE INDEX idx_metrics_timestamp ON metrics(timestamp DESC);
+
+  INSERT INTO cluster_nodes (host_id, hostname, location, cpu_cores, ram_total_gb, disk_total_gb, os) VALUES
+      ('mini-pc-01', 'HomeServer-Alpha', 'Rack Principal - Nivel 1', 8, 16, 512, 'Ubuntu 22.04 LTS'),
+      ('mini-pc-02', 'HomeServer-Beta', 'Rack Principal - Nivel 2', 8, 16, 512, 'Ubuntu 22.04 LTS'),
+      ('mini-pc-03', 'HomeServer-Gamma', 'Escritorio - Zona A', 6, 12, 256, 'Debian 12'),
+      ('mini-pc-04', 'HomeServer-Delta', 'Escritorio - Zona B', 4, 8, 256, 'Ubuntu 22.04 LTS'),
+      ('mini-pc-05', 'HomeServer-Epsilon', 'Estanteria - IoT Hub', 4, 8, 128, 'Raspberry Pi OS')
+  ON CONFLICT (host_id) DO NOTHING;
+
+  CREATE OR REPLACE VIEW latest_metrics AS
+  SELECT DISTINCT ON (m.host_id)
+      m.id,
+      m.host_id,
+      cn.hostname,
+      cn.location,
+      cn.cpu_cores,
+      cn.ram_total_gb,
+      m.cpu_usage,
+      m.ram_used_gb,
+      m.ram_usage_percent,
+      m.temperature,
+      m.disk_used_gb,
+      m.disk_usage_percent,
+      m.network_in_mbps,
+      m.network_out_mbps,
+      m.uptime_hours,
+      m.timestamp,
+      cn.status
+  FROM metrics m
+  JOIN cluster_nodes cn ON m.host_id = cn.host_id
+  WHERE cn.deleted_at IS NULL
+  ORDER BY m.host_id, m.timestamp DESC;
+
+  CREATE OR REPLACE VIEW metrics_24h_avg AS
+  SELECT
+      m.host_id,
+      cn.hostname,
+      AVG(m.cpu_usage) as avg_cpu,
+      AVG(m.ram_usage_percent) as avg_ram,
+      AVG(m.temperature) as avg_temp,
+      MAX(m.temperature) as max_temp,
+      MIN(m.temperature) as min_temp,
+      COUNT(*) as samples
+  FROM metrics m
+  JOIN cluster_nodes cn ON m.host_id = cn.host_id
+  WHERE m.timestamp > NOW() - INTERVAL '24 hours'
+  AND cn.deleted_at IS NULL
+  GROUP BY m.host_id, cn.hostname;
