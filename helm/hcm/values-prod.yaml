@@ -2,6 +2,24 @@ namespace:
   create: false
   name: homelab-cluster-monitor
 
+images:
+  backend:
+    repository: alanbalfonso/hcm-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  frontend:
+    repository: alanbalfonso/hcm-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  simulator:
+    repository: alanbalfonso/hcm-simulator
+    tag: latest
+    pullPolicy: IfNotPresent
+  postgres:
+    repository: postgres
+    tag: 15-alpine
+    pullPolicy: IfNotPresent
+
 backend:
   replicas: 2
 
