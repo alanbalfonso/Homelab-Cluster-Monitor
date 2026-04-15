@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: frontend
-  namespace: hcm
+  namespace: homelab-cluster-monitor
 spec:
   selector:
     app: hcm-frontend
@@ -10,5 +10,4 @@ spec:
     - name: http
       port: 80
       targetPort: 80
-      nodePort: 30080
   type: NodePort

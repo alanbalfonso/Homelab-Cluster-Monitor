@@ -2,9 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: hcm-frontend
-  namespace: hcm
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+  namespace: homelab-cluster-monitor
 spec:
   ingressClassName: nginx
   rules:
@@ -17,3 +15,10 @@ spec:
                 name: frontend
                 port:
                   number: 80
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 3000
