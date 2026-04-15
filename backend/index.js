@@ -24,6 +24,7 @@ app.use('/api/metrics', metricsRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/settings', settingsRoutes);
 app.get('/health', healthCheck);
+app.get('/api/health', healthCheck);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -36,7 +37,8 @@ app.get('/', (req, res) => {
             metrics: '/api/metrics',
             stats: '/api/stats',
             settings: '/api/settings',
-            health: '/health'
+            health: '/health',
+            apiHealth: '/api/health'
         }
     });
 });

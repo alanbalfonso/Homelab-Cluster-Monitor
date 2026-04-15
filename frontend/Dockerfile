@@ -9,6 +9,9 @@ COPY app.js /usr/share/nginx/html/
 # Copiar scripts modularizados
 COPY js /usr/share/nginx/html/js
 
+# Configurar proxy para /api
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 # Exponer puerto
 EXPOSE 80
 

@@ -1,7 +1,7 @@
 /**
  * API Client for HCM Backend
  */
-const API_URL = 'http://localhost:3000/api';
+const API_URL = `${window.location.origin}/api`;
 
 const api = {
     /**

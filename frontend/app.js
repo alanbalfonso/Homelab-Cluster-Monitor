@@ -1,5 +1,5 @@
 // Configuración
-const BACKEND_URL = 'http://localhost:3000';
+const BACKEND_URL = window.location.origin;
 let autoRefreshInterval = null;
 let autoRefreshDelay = 5000; // ms
 let simulationIntervalMs = null; // Intervalo global de simulación (desde backend)
@@ -80,7 +80,7 @@ async function fetchLatestMetrics() {
         
         let errorMsg = 'Error conectando con el servidor';
         if (error.message.includes('fetch')) {
-            errorMsg = 'No se puede conectar al backend. Verifica que esté corriendo en http://localhost:3000';
+            errorMsg = `No se puede conectar al backend. Verifica que esté corriendo en ${BACKEND_URL}`;
         } else if (error.message.includes('HTTP error')) {
             errorMsg = `Error del servidor: ${error.message}`;
         }
