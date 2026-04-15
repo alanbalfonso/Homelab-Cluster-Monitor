@@ -19,6 +19,13 @@ spec:
         - name: simulator
           image: hcm-simulator:latest
           imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
           env:
             - name: BACKEND_URL
               valueFrom:
@@ -54,6 +61,13 @@ spec:
         - name: simulator
           image: hcm-simulator:latest
           imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
           env:
             - name: BACKEND_URL
               valueFrom:
@@ -89,6 +103,13 @@ spec:
         - name: simulator
           image: hcm-simulator:latest
           imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
           env:
             - name: BACKEND_URL
               valueFrom:
@@ -124,6 +145,13 @@ spec:
         - name: simulator
           image: hcm-simulator:latest
           imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
           env:
             - name: BACKEND_URL
               valueFrom:
@@ -159,6 +187,13 @@ spec:
         - name: simulator
           image: hcm-simulator:latest
           imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
           env:
             - name: BACKEND_URL
               valueFrom:
