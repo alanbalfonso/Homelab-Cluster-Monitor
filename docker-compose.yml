@@ -1,14 +1,12 @@
-version: '3.8'
-
 services:
   # Base de datos PostgreSQL
   postgres:
     image: postgres:15-alpine
     container_name: hcm-postgres
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-homelab_monitor}
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-admin123}
     ports:
       - "5432:5432"
     volumes:
@@ -17,25 +15,36 @@ services:
     networks:
       - hcm-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-admin} -d ${POSTGRES_DB:-homelab_monitor}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
-  # Backend API
-  backend:
-    build: ./backend
-    container_name: hcm-backend
+  # Aplicación unificada HCM (Backend API + Frontend Estático + Simulador Integrado)
+  hcm-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hcm-app
     environment:
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      PORT: ${PORT}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-homelab_monitor}
+      DB_USER: ${DB_USER:-admin}
+      DB_PASSWORD: ${DB_PASSWORD:-admin123}
+      PORT: ${PORT:-3000}
       NODE_ENV: ${NODE_ENV:-development}
+      ENABLE_SIMULATOR: ${ENABLE_SIMULATOR:-true}
+      METRICS_INTERVAL: ${METRICS_INTERVAL:-5000}
+      FRONTEND_PATH: /app/frontend
     ports:
-      - "3000:3000"
+      - "${PORT:-3000}:3000"
+      - "8080:3000" # Compatibilidad: acceso directo tanto por puerto 3000 como por 8080
+    volumes:
+      - ./backend:/app/backend
+      - ./frontend:/app/frontend
+      - /app/backend/node_modules
     depends_on:
       postgres:
         condition: service_healthy
@@ -43,91 +52,10 @@ services:
       - hcm-network
     restart: unless-stopped
 
-  # Frontend
-  frontend:
-    build: ./frontend
-    container_name: hcm-frontend
-    ports:
-      - "8080:80"
-    depends_on:
-      - backend
-    networks:
-      - hcm-network
-    restart: unless-stopped
-
-  # Simulador Mini PC 01 - HomeServer Alpha (Alta carga)
-  mini-pc-01:
-    build: ./simulator
-    container_name: mini-pc-01
-    environment:
-      BACKEND_URL: ${BACKEND_URL}
-      HOST_ID: mini-pc-01
-      INTERVAL: ${METRICS_INTERVAL}
-    depends_on:
-      - backend
-    networks:
-      - hcm-network
-    restart: unless-stopped
-
-  # Simulador Mini PC 02 - HomeServer Beta (Carga media)
-  mini-pc-02:
-    build: ./simulator
-    container_name: mini-pc-02
-    environment:
-      BACKEND_URL: ${BACKEND_URL}
-      HOST_ID: mini-pc-02
-      INTERVAL: ${METRICS_INTERVAL}
-    depends_on:
-      - backend
-    networks:
-      - hcm-network
-    restart: unless-stopped
-
-  # Simulador Mini PC 03 - HomeServer Gamma (Carga baja)
-  mini-pc-03:
-    build: ./simulator
-    container_name: mini-pc-03
-    environment:
-      BACKEND_URL: ${BACKEND_URL}
-      HOST_ID: mini-pc-03
-      INTERVAL: ${METRICS_INTERVAL}
-    depends_on:
-      - backend
-    networks:
-      - hcm-network
-    restart: unless-stopped
-
-  # Simulador Mini PC 04 - HomeServer Delta (Bursts)
-  mini-pc-04:
-    build: ./simulator
-    container_name: mini-pc-04
-    environment:
-      BACKEND_URL: ${BACKEND_URL}
-      HOST_ID: mini-pc-04
-      INTERVAL: ${METRICS_INTERVAL}
-    depends_on:
-      - backend
-    networks:
-      - hcm-network
-    restart: unless-stopped
-
-  # Simulador Mini PC 05 - HomeServer Epsilon (IoT Hub - carga muy baja)
-  mini-pc-05:
-    build: ./simulator
-    container_name: mini-pc-05
-    environment:
-      BACKEND_URL: ${BACKEND_URL}
-      HOST_ID: mini-pc-05
-      INTERVAL: ${METRICS_INTERVAL}
-    depends_on:
-      - backend
-    networks:
-      - hcm-network
-    restart: unless-stopped
-
 networks:
   hcm-network:
     driver: bridge
+
 volumes:
   postgres_data:
     driver: local

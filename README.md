@@ -1,424 +1,292 @@
 # Homelab Cluster Monitor (HCM)
 
-Sistema completo de monitoreo para cluster de mini PCs con arquitectura modular, simulación de datos realista, base de datos PostgreSQL y frontend interactivo.
+Sistema integral de monitoreo para clusters de mini PCs y servidores domésticos. Integra visualización interactiva en tiempo real, API REST modular, almacenamiento relacional en PostgreSQL y un motor de simulación multi-nodo concurrente.
+
+---
 
 ## Características
 
-- **Arquitectura modular** con separación de responsabilidades (MVC, OOP)
-- **Simulación realista** de 5 mini PCs con patrones de carga personalizables
-- **Base de datos PostgreSQL** con esquema optimizado e índices de rendimiento
-- **API REST modular** con Express.js y controladores separados
-- **Frontend con JavaScript modular** separado del HTML
-- **Docker Compose** para orquestación completa de 8 contenedores
-- **CI** con GitHub Actions (lint + build)
-- **CD manual** con GitHub Actions (Docker Hub + EKS)
-- **Kubernetes** con manifiestos base (Minikube/EKS)
-- **Helm** para despliegue parametrizado
-- **Métricas completas**: CPU, RAM, Disco, Red, Temperatura, Uptime
-- **Visualización de base de datos** con interfaz web dedicada
-- **Gestión CRUD de nodos** con soft delete y restauración
-## Arquitectura
+- **Arquitectura Unificada de Alto Rendimiento:** Una única aplicación Node.js/Express (`hcm-app`) que sirve el frontend estático, expone la API REST y ejecuta el motor de telemetría.
+- **Simulador Multi-Nodo Concurrente:** Generador en segundo plano que reproduce métricas de hardware de 5 mini PCs con perfiles y patrones de carga diferenciados (alta carga, variable, IoT, ráfagas).
+- **Control Dinámico de Frecuencia:** Ajuste en caliente del intervalo de muestreo desde la interfaz web o mediante la API (`/api/settings/metrics-interval`), sin necesidad de reiniciar servicios.
+- **Base de Datos PostgreSQL Optimizada:** Esquema relacional con índices por nodo y tiempo, claves foráneas en cascada y vistas materializadas/optimizadas (`latest_metrics` y `metrics_24h_avg`).
+- **Dashboard Web en Tiempo Real:** Panel interactivo con refresco configurable, indicadores visuales de umbrales (CPU, RAM, temperatura, disco, red, uptime) y vista modal detallada por nodo.
+- **Gestor Web de Base de Datos:** Interfaz dedicada (`/database`) para inspeccionar métricas crudas, ejecutar consultas históricas y administrar nodos (alta, baja lógica con soft delete y restauración).
+- **Despliegue Sencillo con Docker Compose:** Entorno completo orquestado en 2 contenedores ligeros con verificación de salud (*healthcheck*) y recarga en caliente (*bind mounts*).
+- **Preparado para Producción y Kubernetes:** Manifiestos base en `k8s/`, Helm chart parametrizado en `helm/hcm` y flujos de GitHub Actions para CI/CD.
 
-El sistema utiliza una arquitectura modular distribuida en contenedores Docker:
+---
+
+## Arquitectura del Sistema
+
+El sistema opera bajo un modelo de 2 contenedores interconectados mediante una red puente dedicada (`hcm-network`):
 
 ```
-┌──────────────────────────────────────┐
-│           Frontend (Nginx)           │  Puerto 8080
-│  ├── HTML (estructura)               │
-│  ├── CSS (estilos)                   │
-│  └── JavaScript Modular              │
-│      ├── api.js (cliente HTTP)       │
-│      ├── utils.js (utilidades)       │
-│      ├── database.js (lógica BD)     │
-│      └── app.js (dashboard)          │
-└──────────────┬───────────────────────┘
-               │ HTTP/REST
-               ↓
-┌──────────────────────────────────────┐
-│      Backend API (Express.js)        │  Puerto 3000
-│  ├── config/                         │
-│  │   └── database.js                 │
-│  ├── controllers/                    │
-│  │   ├── nodesController.js          │
-│  │   ├── metricsController.js        │
-│  │   └── statsController.js          │
-│  ├── routes/                         │
-│  │   ├── nodes.js                    │
-│  │   ├── metrics.js                  │
-│  │   └── stats.js                    │
-│  └── index.js (entry point)          │
-└──────────────┬───────────────────────┘
-               │ PostgreSQL Pool
-               ↓
-┌──────────────────────────────────────┐
-│      PostgreSQL 15 Alpine            │  Puerto 5432
-│  ├── cluster_nodes (nodos)           │
-│  ├── metrics (métricas)              │
-│  ├── latest_metrics (vista)          │
-│  └── metrics_24h_avg (vista)         │
-└──────────────┬───────────────────────┘
-               ↑ Envío de métricas
-               │
-┌──────────────┴───────────────────────┐
-│     Simuladores (5 contenedores)     │
-│  ├── config/                         │
-│  │   └── profiles.js                 │
-│  ├── services/                       │
-│  │   ├── metricsGenerator.js (OOP)   │
-│  │   └── apiClient.js (HTTP)         │
-│  └── index.js (Simulator class)      │
-└──────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────┐
+│                      hcm-app (Node.js / Express)                       │
+│                                                   Puertos: 3000 / 8080 │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │                     Frontend Web Estático                        │  │
+│  │  • index.html (Dashboard en tiempo real)                         │  │
+│  │  • database.html (Gestor de BD y Nodos)                          │  │
+│  │  • styles.css & app.js (Renderizado reactivo y clientes HTTP)    │  │
+│  └──────────────────────────────────────────────────────────────────┘  │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │                          API REST                                │  │
+│  │  • /api/nodes     • /api/metrics     • /api/stats                │  │
+│  │  • /api/settings  • /health          • /api                      │  │
+│  └─────────────────────────────────┬────────────────────────────────┘  │
+│  ┌─────────────────────────────────▼────────────────────────────────┐  │
+│  │               Motor de Simulación Integrado (Background)         │  │
+│  │  • Generación concurrente para mini-pc-01 .. mini-pc-05          │  │
+│  │  • Ajuste en caliente de frecuencia de muestreo                  │  │
+│  │  • Control vía flag: ENABLE_SIMULATOR=true|false                 │  │
+│  └─────────────────────────────────┬────────────────────────────────┘  │
+└────────────────────────────────────┼───────────────────────────────────┘
+                                     │ Pool pg (Puerto 5432)
+                                     ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                        hcm-postgres (PostgreSQL 15)                    │
+│                                                            Puerto 5432 │
+│  • cluster_nodes   : Catálogo de nodos físicos/simulados               │
+│  • metrics         : Serie temporal de telemetría de hardware          │
+│  • latest_metrics  : Vista con el último registro por nodo activo      │
+│  • metrics_24h_avg : Vista de promedios agregados de 24 horas          │
+└────────────────────────────────────────────────────────────────────────┘
 ```
+
+---
 
 ## Inicio Rápido
 
-### 1. Construir y levantar todos los servicios
+### Requisitos
+
+- [Docker](https://docs.docker.com/get-docker/) y Docker Compose instalados y en ejecución.
+
+### 1. Clonar y configurar variables de entorno
 
 ```bash
-docker compose up --build
+cp .env.example .env
 ```
 
-### 2. Acceder al sistema
-
-- **Frontend Principal**: http://localhost:8080
-- **Vista de Base de Datos**: http://localhost:8080/database.html
-- **API Backend**: http://localhost:3000
-- **PostgreSQL**: localhost:5432
-
-### 3. Funcionalidades de la Interfaz
-
-#### Dashboard Principal (index.html)
-- Tarjetas de estado para cada nodo del cluster
-- Visualización en tiempo real con auto-refresh opcional
-- Indicadores visuales con código de colores según umbrales
-- Vista detallada al hacer clic en cada nodo
-- Resumen estadístico de 24 horas
-
-#### Interfaz de Base de Datos (database.html)
-
-**Gestión de Nodos:**
-- Agregar nuevos nodos al cluster con especificaciones completas
-- Eliminar nodos (soft delete o permanente)
-- Restaurar nodos eliminados
-- Ver todos los nodos con su estado actual
-
-**Visualización de Métricas:**
-- Ver nodos activos con especificaciones
-- Últimas métricas de cada nodo con JOIN completo
-- Historial de métricas (últimas 100 entradas)
-- Resumen agregado de 24 horas por nodo
-
-### 4. Ver logs
+### 2. Construir y levantar el cluster
 
 ```bash
-# Todos los servicios
-docker compose logs -f
-
-# Solo simuladores
-docker compose logs -f mini-pc-01 mini-pc-02 mini-pc-03
-
-# Solo backend
-docker compose logs -f backend
+docker compose up --build -d
 ```
 
-## Mini PCs Simulados
+### 3. Acceder al sistema
 
-| Host ID | Nombre | Specs | Patrón de Carga | Ubicación |
-|---------|--------|-------|-----------------|-----------|
-| `mini-pc-01` | HomeServer-Alpha | 8 cores, 16GB RAM, 512GB | Alta constante | Rack Principal - Nivel 1 |
-| `mini-pc-02` | HomeServer-Beta | 8 cores, 16GB RAM, 512GB | Media variable | Rack Principal - Nivel 2 |
-| `mini-pc-03` | HomeServer-Gamma | 6 cores, 12GB RAM, 256GB | Baja constante | Escritorio - Zona A |
-| `mini-pc-04` | HomeServer-Delta | 4 cores, 8GB RAM, 256GB | Bursts ocasionales | Escritorio - Zona B |
-| `mini-pc-05` | HomeServer-Epsilon | 4 cores, 8GB RAM, 128GB | Muy baja (IoT) | Estantería - IoT Hub |
+| Servicio | URL | Descripción |
+|---|---|---|
+| **Dashboard Principal** | [http://localhost:3000](http://localhost:3000) o [http://localhost:8080](http://localhost:8080) | Panel de telemetría en tiempo real |
+| **Gestor de Base de Datos** | [http://localhost:3000/database](http://localhost:3000/database) | Administración CRUD de nodos y consultas |
+| **API REST Metadata** | [http://localhost:3000/api](http://localhost:3000/api) | Resumen de endpoints disponibles |
+| **Health Check** | [http://localhost:3000/health](http://localhost:3000/health) | Estado del servidor y conectividad a BD |
 
-## Endpoints de la API
+---
 
-### Nodos
-- `GET /api/nodes` - Lista de nodos activos
-- `GET /api/nodes/all` - Todos los nodos (incluye eliminados)
-- `POST /api/nodes` - Crear nuevo nodo o restaurar si existe
-- `DELETE /api/nodes/:hostId` - Soft delete de un nodo
-- `DELETE /api/nodes/:hostId?permanent=true` - Eliminación permanente
-- `POST /api/nodes/:hostId/restore` - Restaurar nodo eliminado
+## Perfiles de Mini PCs Simulados
 
-### Métricas
-- `POST /api/metrics/batch` - Enviar batch de métricas (simuladores)
-- `POST /api/metrics/manual` - Insertar métricas manualmente
-- `GET /api/metrics/latest` - Últimas métricas de cada nodo
-- `GET /api/metrics/history/:host_id?limit=N` - Historial de un nodo
-- `GET /api/metrics/summary` - Resumen de 24 horas agregado
+El simulador emula 5 perfiles con comportamientos de hardware realistas:
 
-### Estadísticas
-- `GET /api/stats` - Estadísticas generales del cluster
-- `GET /api/health` - Health check del sistema
+| Host ID | Nombre | Especificaciones | Patrón de Carga | Ubicación |
+|---|---|---|---|---|
+| `mini-pc-01` | HomeServer-Alpha | 8 cores, 16 GB RAM, 512 GB Disco | Alta carga sostenida | Rack Principal - Nivel 1 |
+| `mini-pc-02` | HomeServer-Beta | 8 cores, 16 GB RAM, 512 GB Disco | Carga media oscilante | Rack Principal - Nivel 2 |
+| `mini-pc-03` | HomeServer-Gamma | 6 cores, 12 GB RAM, 256 GB Disco | Baja carga constante | Escritorio - Zona A |
+| `mini-pc-04` | HomeServer-Delta | 4 cores, 8 GB RAM, 256 GB Disco | Picos y ráfagas periódicas | Escritorio - Zona B |
+| `mini-pc-05` | HomeServer-Epsilon | 4 cores, 8 GB RAM, 128 GB Disco | Carga muy reducida (IoT Hub) | Estantería - IoT Hub |
 
-### Ejemplo de uso
+> **Modo Agente Real:** Si se conecta a mini-PCs reales mediante agentes que envíen métricas a `POST /api/metrics`, el simulador puede desactivarse configurando `ENABLE_SIMULATOR=false` en el archivo `.env`.
 
-```bash
-# Obtener últimas métricas
-curl http://localhost:3000/api/metrics/latest
+---
 
-# Obtener historial de un nodo
-curl http://localhost:3000/api/metrics/history/mini-pc-01?limit=50
-```
+## Endpoints de la API REST
 
-## Base de Datos
+### Nodos del Cluster (`/api/nodes`)
 
-### Tablas
+- `GET /api/nodes` - Lista de nodos activos (excluye eliminados lógicamente).
+- `GET /api/nodes/all` - Lista de todos los nodos, incluyendo eliminados.
+- `POST /api/nodes` - Registra un nuevo nodo o restaura uno previo con el mismo `host_id`.
+- `DELETE /api/nodes/:hostId` - Eliminación lógica (*soft delete*) de un nodo.
+- `DELETE /api/nodes/:hostId?permanent=true` - Eliminación física permanente de la base de datos.
+- `POST /api/nodes/:hostId/restore` - Restaura un nodo previamente eliminado.
 
-1. **`cluster_nodes`** - Información de los nodos del cluster
-   - `host_id`, `hostname`, `location`, `cpu_cores`, `ram_total_gb`, etc.
+### Métricas de Telemetría (`/api/metrics`)
 
-2. **`metrics`** - Métricas recolectadas
-   - Todas las métricas por timestamp
-   - Índices optimizados para consultas por tiempo
+- `GET /api/metrics/latest` - Última medición registrada de cada nodo activo.
+- `GET /api/metrics/history/:host_id?limit=50` - Historial cronológico de un nodo específico.
+- `GET /api/metrics/summary` - Resumen estadístico de las últimas 24 horas (promedios de CPU, RAM, temperatura).
+- `POST /api/metrics` - Endpoint para ingesta de métricas desde agentes externos o simuladores.
+- `POST /api/metrics/manual` - Registro manual de telemetría desde la interfaz web.
 
-### Vistas
+### Configuración del Sistema (`/api/settings`)
 
-1. **`latest_metrics`** - Últimas métricas de cada nodo
-2. **`metrics_24h_avg`** - Promedios de las últimas 24 horas
+- `GET /api/settings/metrics-interval` - Obtiene el intervalo de muestreo actual y los límites permitidos.
+- `POST /api/settings/metrics-interval` - Actualiza dinámicamente la frecuencia del simulador (entre 2000 ms y 60000 ms).
 
-### Conectar directamente a PostgreSQL
+### Estadísticas y Salud (`/api/stats` y `/health`)
+
+- `GET /api/stats` - Conteo de nodos activos/eliminados, total de métricas registradas y promedios de la última hora.
+- `GET /health` - Verificación de disponibilidad de la API y de la conexión con PostgreSQL.
+
+---
+
+## Gestión de Base de Datos (PostgreSQL)
+
+### Tablas Principales
+
+1. **`cluster_nodes`**: Catálogo de nodos registrados con `host_id`, `hostname`, `location`, capacidad de hardware (`cpu_cores`, `ram_total_gb`, `disk_total_gb`), sistema operativo y marcas de tiempo (`created_at`, `deleted_at`).
+2. **`metrics`**: Registro temporal con `cpu_usage`, `ram_used_gb`, `ram_usage_percent`, `temperature`, `disk_used_gb`, `disk_usage_percent`, `network_in_mbps`, `network_out_mbps`, `uptime_hours` y `timestamp`. Incluye índices optimizados en `(host_id, timestamp DESC)` y `(timestamp DESC)`.
+
+### Vistas Optimizadas
+
+1. **`latest_metrics`**: Utiliza `DISTINCT ON (host_id)` para devolver de forma inmediata el estado más reciente de cada nodo activo con datos desnormalizados.
+2. **`metrics_24h_avg`**: Calcula promedios agregados (`avg_cpu`, `avg_ram`, `avg_temp`, `min_temp`, `max_temp`) de las últimas 24 horas por nodo.
+
+### Acceso Directo por Consola (CLI)
 
 ```bash
 docker exec -it hcm-postgres psql -U admin -d homelab_monitor
+```
 
-# Consultas de ejemplo
-SELECT * FROM cluster_nodes;
-SELECT * FROM latest_metrics;
+Consultas útiles:
+
+```sql
+-- Último estado de cada nodo
+SELECT host_id, hostname, cpu_usage, ram_usage_percent, temperature FROM latest_metrics;
+
+-- Promedios de las últimas 24 horas
 SELECT * FROM metrics_24h_avg;
+
+-- Total de muestras almacenadas
 SELECT COUNT(*) FROM metrics;
 ```
 
-## Arquitectura del Código
+---
 
-### Backend (Patrón MVC)
-
-**Capa de Configuración:**
-- `config/database.js`: Pool de conexiones PostgreSQL con manejo de errores
-
-**Capa de Controladores:**
-- `controllers/nodesController.js`: Lógica de negocio para CRUD de nodos
-- `controllers/metricsController.js`: Operaciones de métricas con validaciones
-- `controllers/statsController.js`: Estadísticas del cluster
-
-**Capa de Rutas:**
-- `routes/nodes.js`: Definición de endpoints de nodos
-- `routes/metrics.js`: Definición de endpoints de métricas
-- `routes/stats.js`: Definición de endpoints de estadísticas
-
-**Punto de Entrada:**
-- `index.js`: Configuración de Express, middlewares, y montaje de rutas
-
-### Simulator (Programación Orientada a Objetos)
-
-**Configuración:**
-- `config/profiles.js`: Perfiles de hardware y patrones de carga
-
-**Servicios:**
-- `services/metricsGenerator.js`: Clase para generar métricas realistas
-- `services/apiClient.js`: Clase para comunicación HTTP con backend
-
-**Orquestador:**
-- `index.js`: Clase Simulator con ciclo de vida completo
-
-### Frontend (JavaScript Modular)
-
-**Módulos:**
-- `js/api.js`: Cliente HTTP reutilizable para todos los endpoints
-- `js/utils.js`: Funciones de utilidad (formateo, UI, validación)
-- `js/database.js`: Lógica específica de la interfaz de base de datos
-- `app.js`: Lógica del dashboard principal
-
-**Vistas:**
-- `index.html`: Dashboard principal
-- `database.html`: Interfaz de gestión de base de datos
-
-### Indicadores Visuales
-
-- Verde: Valores normales (< 50%)
-- Amarillo: Valores medios (50-80%)
-- Rojo: Valores altos (> 80%)
-
-## Comandos Útiles
+## Operación y Comandos Habituales
 
 ```bash
-# Detener todos los servicios
+# Ver logs unificados de la aplicación en tiempo real
+docker compose logs -f hcm-app
+
+# Ver logs de la base de datos
+docker compose logs -f postgres
+
+# Detener los servicios preservando los datos
 docker compose down
 
-# Detener y eliminar volúmenes (limpia la BD)
+# Detener los servicios y reiniciar la base de datos desde cero
 docker compose down -v
 
-# Reconstruir un servicio específico
-docker compose up --build backend
+# Reconstruir la imagen de la aplicación tras cambios en código
+docker compose up --build -d hcm-app
 
-# Ver estadísticas de recursos
-docker stats
-
-# Entrar al contenedor del backend
-docker exec -it hcm-backend sh
-
-# Reiniciar un simulador
-docker compose restart mini-pc-01
+# Acceder a la terminal del contenedor de la aplicación
+docker exec -it hcm-app sh
 ```
 
-## CI/CD
-
-El proyecto incluye un pipeline de Integración Continua (CI) y un flujo de Despliegue Continuo (CD) manual.
-
-**CI (GitHub Actions)**
-- Ejecuta lint en backend y simulador.
-- Valida Docker Compose y construye las imagenes.
-
-**CD (GitHub Actions, manual)**
-- Construye y publica imagenes en Docker Hub.
-- Despliega con Helm en EKS.
-- Se ejecuta solo bajo demanda (workflow_dispatch).
-
-### Secrets requeridos (GitHub)
-
-- `DOCKERHUB_TOKEN`
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
-
-## Kubernetes
-
-Manifiestos base en `k8s/` para despliegue en Minikube o EKS.
-
-```bash
-kubectl apply -f k8s/
-```
-
-## Helm
-
-Chart principal en `helm/hcm/` con valores para dev y prod.
-
-```bash
-helm install hcm helm/hcm -f helm/hcm/values-dev.yaml
-```
+---
 
 ## Estructura del Proyecto
 
 ```
 HCM/
-├── docker-compose.yml              # Orquestación de servicios
-├── k8s/                             # Manifiestos Kubernetes
-├── helm/                            # Chart Helm
-├── .github/workflows/               # CI/CD con GitHub Actions
+├── docker-compose.yml              # Definición de servicios (hcm-app + postgres)
+├── Dockerfile                      # Imagen unificada de la aplicación (Node 18 Alpine)
+├── .env.example                    # Plantilla de variables de entorno
 ├── README.md                       # Documentación principal
-├── ARCHITECTURE.md                 # Guía de arquitectura detallada
-├── REFACTORING_SUMMARY.md          # Resumen de refactorización
-├── DATABASE_GUIDE.md               # Guía de base de datos
 │
-├── backend/                        # API REST modular
+├── backend/                        # Servidor Express y motor de telemetría
 │   ├── config/
-│   │   └── database.js             # Configuración de PostgreSQL
+│   │   └── database.js             # Pool de conexiones a PostgreSQL
 │   ├── controllers/
 │   │   ├── nodesController.js      # CRUD de nodos
-│   │   ├── metricsController.js    # Operaciones de métricas
-│   │   └── statsController.js      # Estadísticas y queries
+│   │   ├── metricsController.js    # Ingesta y consultas de métricas
+│   │   ├── settingsController.js   # Gestión de intervalos y configuración
+│   │   └── statsController.js      # Métricas globales y healthcheck
 │   ├── routes/
-│   │   ├── nodes.js                # Rutas de nodos
-│   │   ├── metrics.js              # Rutas de métricas
-│   │   └── stats.js                # Rutas de estadísticas
-│   ├── index.js                    # Punto de entrada
-│   ├── index-monolithic.js.backup  # Backup del código original
-│   ├── init.sql                    # Esquema de base de datos
-│   ├── package.json
-│   └── Dockerfile
+│   │   ├── nodes.js                # Rutas /api/nodes
+│   │   ├── metrics.js              # Rutas /api/metrics
+│   │   ├── settings.js             # Rutas /api/settings
+│   │   └── stats.js                # Rutas /api/stats
+│   ├── simulator/                  # Motor de simulación integrado
+│   │   ├── profiles.js             # Definición de hardware de los mini-PCs
+│   │   ├── metricsGenerator.js     # Algoritmo generador de métricas
+│   │   └── simulatorService.js     # Servicio de ejecución y temporizado
+│   ├── index.js                    # Punto de entrada de la aplicación
+│   ├── init.sql                    # Script de inicialización de PostgreSQL
+│   └── package.json
 │
-├── frontend/                       # Interfaz web
-│   ├── js/
-│   │   ├── api.js                  # Cliente HTTP para backend
-│   │   ├── utils.js                # Funciones de utilidad
-│   │   └── database.js             # Lógica de database.html
+├── frontend/                       # Interfaz de usuario (Single Page Application)
 │   ├── index.html                  # Dashboard principal
-│   ├── database.html               # Interfaz de gestión de BD
+│   ├── database.html               # Gestor web de base de datos
+│   ├── styles.css                  # Estilos visuales del sistema
 │   ├── app.js                      # Lógica del dashboard
-│   ├── styles.css                  # Estilos globales
-│   ├── Dockerfile
-│   └── nginx.conf
+│   └── js/
+│       ├── api.js                  # Cliente HTTP para la API REST
+│       ├── database.js             # Lógica de la pantalla de base de datos
+│       └── utils.js                # Funciones auxiliares y formateadores
 │
-├── simulator/                      # Generadores de métricas (OOP)
-│   ├── config/
-│   │   └── profiles.js             # Perfiles de mini-PCs
-│   ├── services/
-│   │   ├── metricsGenerator.js     # Clase generadora
-│   │   └── apiClient.js            # Cliente HTTP
-│   ├── index.js                    # Clase Simulator
-│   ├── index-monolithic.js.backup  # Backup del código original
-│   ├── package.json
-│   └── Dockerfile
+├── k8s/                            # Manifiestos para Kubernetes (EKS / Minikube)
+│   ├── backend-deployment.yaml
+│   ├── backend-service.yaml
+│   ├── configmap.yaml
+│   ├── secret.yaml
+│   └── postgres-*.yaml
 │
-└── infraestructura/
-    ├── docker-compose.yml
-    ├── main.tf                     # Configuración Terraform
-    └── terraform.tfvars
+├── helm/                           # Chart de despliegue con Helm
+│   └── hcm/
+│
+└── .github/workflows/              # Flujos automatizados de CI/CD
+    ├── ci.yml                      # Linter y validación de Docker build
+    └── cd.yml                      # Publicación en Docker Hub y despliegue EKS
 ```
 
-## Configuración
+---
 
-### Variables de entorno del simulador
+## Variables de Entorno
 
-- `BACKEND_URL`: URL del backend (default: http://backend:3000)
-- `HOST_ID`: Identificador del mini PC (mini-pc-01 a mini-pc-05)
-- `INTERVAL`: Intervalo de envío de métricas en ms (default: 5000)
+Configurables en el archivo `.env`:
 
-### Variables de entorno del backend
+| Variable | Valor por defecto | Descripción |
+|---|---|---|
+| `PORT` | `3000` | Puerto HTTP principal de la aplicación |
+| `NODE_ENV` | `development` | Entorno de ejecución (`development` / `production`) |
+| `DB_HOST` | `postgres` | Host o nombre del servicio de PostgreSQL |
+| `DB_PORT` | `5432` | Puerto del motor de base de datos |
+| `DB_NAME` | `homelab_monitor` | Nombre de la base de datos |
+| `DB_USER` | `admin` | Usuario administrador de PostgreSQL |
+| `DB_PASSWORD` | `admin123` | Contraseña de PostgreSQL |
+| `ENABLE_SIMULATOR` | `true` | Habilita o deshabilita el motor interno de simulación |
+| `METRICS_INTERVAL` | `5000` | Intervalo base de muestreo del simulador (en milisegundos) |
+| `FRONTEND_PATH` | `/app/frontend` | Ruta en disco desde donde se sirven los archivos web |
 
-- `DB_HOST`: Host de PostgreSQL (default: postgres)
-- `DB_PORT`: Puerto de PostgreSQL (default: 5432)
-- `DB_NAME`: Nombre de la base de datos (default: homelab_monitor)
-- `DB_USER`: Usuario de PostgreSQL (default: admin)
-- `DB_PASSWORD`: Contraseña de PostgreSQL (default: admin123)
-- `PORT`: Puerto del backend (default: 3000)
+---
 
-## Troubleshooting
+## Despliegue en Kubernetes y Helm
 
-### El frontend no muestra datos
+### Manifiestos Nativos (k8s)
 
-1. Verifica que el backend esté corriendo: `docker compose logs backend`
-2. Verifica conectividad: `curl http://localhost:3000/health`
-3. Revisa la consola del navegador (F12)
+```bash
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/
+```
 
-### La base de datos no inicia
+### Despliegue con Helm
 
-1. Verifica logs: `docker compose logs postgres`
-2. Elimina el volumen y reinicia: `docker compose down -v && docker compose up`
+```bash
+# Entorno de desarrollo
+helm upgrade --install hcm helm/hcm -f helm/hcm/values-dev.yaml -n homelab-cluster-monitor --create-namespace
 
-### Los simuladores no envían datos
+# Entorno de producción
+helm upgrade --install hcm helm/hcm -f helm/hcm/values-prod.yaml -n homelab-cluster-monitor --create-namespace
+```
 
-1. Verifica que el backend esté listo antes de los simuladores
-2. Revisa logs: `docker compose logs mini-pc-01`
-3. Verifica red: `docker network inspect hcm_hcm-network`
-
-## Documentación Adicional
-
-- **ARCHITECTURE.md**: Guía completa de la arquitectura del sistema
-- **REFACTORING_SUMMARY.md**: Resumen del proceso de refactorización
-- **DATABASE_GUIDE.md**: Esquema de base de datos y consultas útiles
-
-## Desarrollo y Mejoras Futuras
-
-**Visualización:**
-- Gráficas históricas con Chart.js o D3.js
-- Dashboard con métricas en tiempo real vía WebSockets
-
-**Funcionalidad:**
-- Sistema de alertas configurable (email/Slack/webhook)
-- Exportación de datos en múltiples formatos
-- Autenticación y autorización con JWT
-- Rate limiting y throttling
-
-**Infraestructura:**
-- Tests unitarios y de integración
-- CI/CD con GitHub Actions
-- Monitoreo con Prometheus y Grafana
-- Cache con Redis
-- Logs centralizados con ELK stack
+---
 
 ## Licencia
 
-MIT License - Libre para uso personal y comercial
-
----
+MIT License - Libre para uso personal, educativo y comercial.

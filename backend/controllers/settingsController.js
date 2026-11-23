@@ -1,7 +1,9 @@
+const simulatorService = require('../simulator/simulatorService');
+
 let metricsIntervalMs = parseInt(process.env.METRICS_INTERVAL || '5000', 10);
 
-const MIN_INTERVAL_MS = 5000;
-const MAX_INTERVAL_MS = 30000;
+const MIN_INTERVAL_MS = 2000;
+const MAX_INTERVAL_MS = 60000;
 
 function clampInterval(value) {
     const v = parseInt(value, 10);
@@ -27,12 +29,13 @@ const updateMetricsInterval = (req, res) => {
     if (clamped === null) {
         return res.status(400).json({
             success: false,
-            error: 'metrics_interval_ms debe ser un número entre 5000 y 30000 milisegundos'
+            error: `metrics_interval_ms debe ser un número entre ${MIN_INTERVAL_MS} y ${MAX_INTERVAL_MS} milisegundos`
         });
     }
 
     metricsIntervalMs = clamped;
-    console.log(`⚙️  Intervalo de métricas actualizado a ${metricsIntervalMs} ms (global)`);
+    simulatorService.setInterval(clamped);
+    console.log(`Intervalo de métricas actualizado a ${metricsIntervalMs} ms (global)`);
 
     res.json({
         success: true,
@@ -46,3 +49,4 @@ module.exports = {
     MIN_INTERVAL_MS,
     MAX_INTERVAL_MS
 };
+

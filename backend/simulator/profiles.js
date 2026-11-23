@@ -54,16 +54,10 @@ const PC_PROFILES = {
     }
 };
 
-/**
- * Obtener perfil por host_id
- */
 function getProfile(hostId) {
     return PC_PROFILES[hostId];
 }
 
-/**
- * Verificar si existe un perfil
- */
 function hasProfile(hostId) {
     return hostId in PC_PROFILES;
 }

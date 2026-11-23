@@ -30,26 +30,13 @@ jobs:
           username: ${{ env.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push backend image
+      - name: Build and push hcm-app image
         uses: docker/build-push-action@v6
         with:
-          context: ./backend
+          context: .
+          file: ./Dockerfile
           push: true
-          tags: ${{ env.DOCKERHUB_USERNAME }}/hcm-backend:${{ steps.vars.outputs.IMAGE_TAG }}
-
-      - name: Build and push frontend image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./frontend
-          push: true
-          tags: ${{ env.DOCKERHUB_USERNAME }}/hcm-frontend:${{ steps.vars.outputs.IMAGE_TAG }}
-
-      - name: Build and push simulator image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./simulator
-          push: true
-          tags: ${{ env.DOCKERHUB_USERNAME }}/hcm-simulator:${{ steps.vars.outputs.IMAGE_TAG }}
+          tags: ${{ env.DOCKERHUB_USERNAME }}/hcm-app:${{ steps.vars.outputs.IMAGE_TAG }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -67,9 +54,5 @@ jobs:
             -n ${{ env.K8S_NAMESPACE }} \
             --create-namespace \
             -f helm/hcm/values-prod.yaml \
-            --set images.backend.repository=${{ env.DOCKERHUB_USERNAME }}/hcm-backend \
-            --set images.backend.tag=${{ steps.vars.outputs.IMAGE_TAG }} \
-            --set images.frontend.repository=${{ env.DOCKERHUB_USERNAME }}/hcm-frontend \
-            --set images.frontend.tag=${{ steps.vars.outputs.IMAGE_TAG }} \
-            --set images.simulator.repository=${{ env.DOCKERHUB_USERNAME }}/hcm-simulator \
-            --set images.simulator.tag=${{ steps.vars.outputs.IMAGE_TAG }}
+            --set images.backend.repository=${{ env.DOCKERHUB_USERNAME }}/hcm-app \
+            --set images.backend.tag=${{ steps.vars.outputs.IMAGE_TAG }}

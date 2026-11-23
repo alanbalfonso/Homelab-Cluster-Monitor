@@ -2,7 +2,7 @@
  * Generador de métricas realistas para simulación de nodos
  */
 class MetricsGenerator {
-    constructor(profile, interval) {
+    constructor(profile, interval = 5000) {
         this.profile = profile;
         this.interval = interval;
         this.state = {
@@ -12,13 +12,10 @@ class MetricsGenerator {
         };
     }
 
-    /**
-     * Generar CPU según patrón de carga
-     */
     _generateCPU(time, iteration) {
         let cpu_usage = this.profile.baseCpu;
         
-        switch(this.profile.workloadPattern) {
+        switch (this.profile.workloadPattern) {
             case 'high':
                 cpu_usage += Math.sin(time / 300) * 15 + Math.random() * 10;
                 break;
@@ -42,9 +39,6 @@ class MetricsGenerator {
         return Math.max(5, Math.min(95, cpu_usage));
     }
 
-    /**
-     * Generar RAM con crecimiento y GC
-     */
     _generateRAM(iteration) {
         const ram_growth = (iteration * 0.001) % 2;
         const ram_used_gb = this.profile.baseRam + ram_growth + (Math.random() - 0.5) * 0.5;
@@ -56,9 +50,6 @@ class MetricsGenerator {
         };
     }
 
-    /**
-     * Generar temperatura correlacionada con CPU
-     */
     _generateTemperature(cpu_usage, time) {
         const temp = this.profile.baseTemp + 
                      (cpu_usage / 100) * 20 + 
@@ -67,9 +58,6 @@ class MetricsGenerator {
         return parseFloat(temp.toFixed(2));
     }
 
-    /**
-     * Generar uso de disco con crecimiento lento
-     */
     _generateDisk() {
         this.state.disk_used += Math.random() * 0.001;
         const disk_used_gb = (this.profile.disk_total * 0.3) + this.state.disk_used;
@@ -81,9 +69,6 @@ class MetricsGenerator {
         };
     }
 
-    /**
-     * Generar tráfico de red con bursts
-     */
     _generateNetwork() {
         const network_in_mbps = Math.random() < 0.1 
             ? Math.random() * 100 + 50
@@ -97,9 +82,6 @@ class MetricsGenerator {
         };
     }
 
-    /**
-     * Generar conjunto completo de métricas
-     */
     generate(hostId, iteration) {
         const time = Date.now() / 1000;
         
@@ -113,7 +95,7 @@ class MetricsGenerator {
         
         return {
             host_id: hostId,
-            cpu_usage,
+            cpu_usage: parseFloat(cpu_usage.toFixed(2)),
             ram_used_gb,
             ram_usage_percent,
             temperature,
@@ -121,13 +103,10 @@ class MetricsGenerator {
             disk_usage_percent,
             network_in_mbps,
             network_out_mbps,
-            uptime_hours: parseInt(this.state.uptime)
+            uptime_hours: parseInt(this.state.uptime, 10)
         };
     }
 
-    /**
-     * Resetear estado
-     */
     reset() {
         this.state = {
             uptime: Math.random() * 100,
